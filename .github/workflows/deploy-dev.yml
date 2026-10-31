@@ -2,6 +2,7 @@ name: Deploy dev backend
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,9 +52,15 @@ jobs:
       - run: npm ci
         working-directory: backend
       - uses: actions/download-artifact@v4
+        id: download-bundle
+        continue-on-error: true
         with:
           name: backend-worker-${{ github.sha }}
           path: backend/.worker-build
+      - name: Build worker bundle if not downloaded
+        if: steps.download-bundle.outcome != 'success'
+        working-directory: backend
+        run: npm run worker:check
       - name: Deploy the tested bundle
         id: deploy
         working-directory: backend

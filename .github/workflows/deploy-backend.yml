@@ -4,12 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        description: 'Which environment to deploy to'
         type: choice
         options: [dev, qa, prod]
         default: dev
         required: true
+      action:
+        description: 'deploy or rollback (rollback = prod only)'
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+        required: true
       ci_run_id:
-        description: Successful EasyCart CI push run ID (leave blank to deploy latest successful build)
+        description: 'Specific CI run ID (leave blank to deploy latest successful build)'
         type: string
         required: false
         default: ''
