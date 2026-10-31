@@ -51,12 +51,6 @@ export default function ShopTabs() {
       <Tabs.Screen name="index" options={{ title: t('Shop'), headerShown: false, tabBarIcon: tabIcon('home') }} />
       <Tabs.Screen
         name="cart"
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('/shop/checkout');
-          }
-        }}
         options={{
           title: t('Cart'),
           tabBarIcon: tabIcon('shopping-cart'),
@@ -67,7 +61,7 @@ export default function ShopTabs() {
       <Tabs.Screen name="orders" options={{ title: t('My orders'), tabBarLabel: t('Orders'), tabBarIcon: tabIcon('clipboard'), headerLeft: () => <BackButton /> }} />
       <Tabs.Screen name="account" options={{ title: t('Account'), tabBarIcon: tabIcon('user'), headerLeft: () => <BackButton /> }} />
       <Tabs.Screen name="product/[id]" options={{ title: t('Product'), headerShown: false, tabBarStyle: { display: 'none' }, href: null }} />
-      <Tabs.Screen name="checkout" options={hiddenPage(t('Checkout'))} />
+      <Tabs.Screen name="checkout" options={{ title: t('Checkout'), href: null, headerLeft: () => <BackButton /> }} />
       <Tabs.Screen name="pay" options={hiddenPage(t('Pay online'))} />
       <Tabs.Screen name="nearby" options={hiddenPage(t('Shops near you'))} />
       <Tabs.Screen name="order/[id]" options={hiddenPage(t('Order'))} />

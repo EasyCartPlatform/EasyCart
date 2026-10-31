@@ -92,7 +92,7 @@ export default function CheckoutScreen() {
   return (
     <Screen
       footer={
-        <View style={{ gap: space.xs }}>
+        <View style={{ gap: space.xs, paddingBottom: 76 }}>
           {isOutOfRange && (
             <Notice tone="danger" icon="alert-triangle">
               {t('Cannot deliver to this location. Please choose Pick up or switch to an address within {km} km.', { km: range?.maxRadiusKm ?? 5 })}

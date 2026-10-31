@@ -376,8 +376,6 @@ export default function ShopHome() {
         </View>
       </Screen>
 
-      <FloatingCartBar />
-
       {/* Filters Modal */}
       <Modal
         visible={filterModalOpen}

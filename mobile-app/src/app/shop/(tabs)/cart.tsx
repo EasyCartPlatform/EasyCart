@@ -1,6 +1,3 @@
-// The cart now routes directly to checkout where product details are shown at the top.
-import { Redirect } from 'expo-router';
+import CheckoutScreen from './checkout';
 
-export default function CartScreen() {
-  return <Redirect href="/shop/checkout" />;
-}
+export default CheckoutScreen;
