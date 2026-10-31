@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [EasyCart CI]
     types: [completed]
-    branches: [main]
+    branches: [main, 'feature/**']
   workflow_dispatch:
     inputs:
       environment:
@@ -13,7 +13,7 @@ on:
         default: dev
         required: true
       ci_run_id:
-        description: Successful main-branch EasyCart CI run ID to deploy or promote
+        description: Successful EasyCart CI push run ID (feature/* for dev, main for any environment)
         type: string
         required: true
 
@@ -29,7 +29,8 @@ concurrency:
 jobs:
   release:
     if: >-
-      github.ref == 'refs/heads/main' &&
+      (github.ref == 'refs/heads/main' ||
+      (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev')) &&
       (github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && vars.ENABLE_DEV_DEPLOY == 'true'))
     runs-on: ubuntu-latest
