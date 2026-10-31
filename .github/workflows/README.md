@@ -9,8 +9,7 @@ Push a branch or open a PR
   → one final “CI” result
 
 Successful backend CI on main
-  → run database integration tests
-  → deploy dev, if enabled
+  → deploy dev, if enabled (no database integration tests)
   → check the deployed health endpoint
   → manually promote the same artifact to QA, then prod
 ```
@@ -73,7 +72,7 @@ Real database tests create and change data. In GitHub, create an environment nam
 - `CI_SUPABASE_URL`
 - `CI_SUPABASE_SERVICE_ROLE_KEY`
 
-Use a dedicated test project with the required database schema, migrations, and Storage setup. Never point these tests at production. Run **Backend Supabase integration** manually from `main`, or let the deployment workflow run it before deployment. Runs sharing the CI database are serialized. Secrets are never supplied to ordinary PR checks.
+Use a dedicated test project with the required database schema, migrations, and Storage setup. Never point these tests at production. Dev deployment skips database integration tests, so the initial single-project dev setup needs no `ci` environment or CI database secrets. Run **Backend Supabase integration** manually from `main` only after configuring a separate test project. QA/prod deployments still require this suite. Runs sharing the CI database are serialized. Secrets are never supplied to ordinary PR checks.
 
 ## Dev, QA, and prod
 
@@ -97,9 +96,9 @@ The same bundled JavaScript artifact is used in each environment. It is not rebu
 6. Start with dev only. To allow automatic dev deployments, add the **repository variable** `ENABLE_DEV_DEPLOY=true`. Leave it unset to keep deployment manual. Leave QA/prod disabled until you have isolated databases and have completed readiness checks.
 7. For manual deployment, open **Actions → Deploy backend → Run workflow**, select `main`, choose the environment, and provide the numeric run ID of a successful **EasyCart CI** push run on `main` that produced a backend artifact. Use that same ID to promote it to the next environment.
 
-All deployment switches default to disabled. A run from a feature branch cannot deploy. Only successful main push CI artifacts are accepted. Deployments must pass the real Supabase integration suite first. Wrangler uploads code and temporary-file secrets together, then the workflow checks `/api/health` and records the commit and CI run ID for the next promotion gate. A failed health check fails deployment; it does not automatically roll back a Worker already uploaded. After a deployment failure, inspect the logs and re-deploy the previous known-good artifact if necessary.
+All deployment switches default to disabled. A run from a feature branch cannot deploy. Only successful main push CI artifacts are accepted. Dev deployments skip the real Supabase integration suite; QA/prod deployments must pass it first. Database-independent CI checks remain required for every release. Wrangler uploads code and temporary-file secrets together, then the workflow checks `/api/health` and records the commit and CI run ID for the next promotion gate. A failed health check fails deployment; it does not automatically roll back a Worker already uploaded. After a deployment failure, inspect the logs and re-deploy the previous known-good artifact if necessary.
 
-GitHub Environments are configuration boundaries, not extra free database instances. Supabase's free allowance includes two active projects. For the first free setup, use one for dev and one for CI; keep QA/prod disabled rather than sharing production data. Cloudflare's request/CPU limits and GitHub's runner/storage allowances still apply. No paid resource is provisioned by these files.
+GitHub Environments are configuration boundaries, not extra free database instances. Supabase's free allowance includes two active projects. For the initial setup, use one project for dev and skip database integration tests. Add a separate CI project before running integration tests or enabling QA/prod; keep QA/prod disabled rather than sharing dev data. Cloudflare's request/CPU limits and GitHub's runner/storage allowances still apply. No paid resource is provisioned by these files.
 
 ## Password migration before enabling Workers
 

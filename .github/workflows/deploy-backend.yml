@@ -52,7 +52,7 @@ jobs:
           AUTO_DEPLOY: ${{ github.event_name == 'workflow_run' }}
 
   integration:
-    if: needs.release.outputs.sha != ''
+    if: needs.release.outputs.sha != '' && needs.release.outputs.environment != 'dev'
     needs: release
     uses: ./.github/workflows/backend-integration.yml
     with:
@@ -60,6 +60,10 @@ jobs:
     secrets: inherit
 
   deploy:
+    if: >-
+      always() && needs.release.result == 'success' && needs.release.outputs.sha != '' &&
+      (needs.integration.result == 'success' ||
+      (needs.release.outputs.environment == 'dev' && needs.integration.result == 'skipped'))
     needs: [release, integration]
     runs-on: ubuntu-latest
     timeout-minutes: 15
