@@ -8,4 +8,5 @@ for (const key of [...keys, 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'BA
 }
 if (process.env.JWT_SECRET.length < 32) throw new Error('JWT_SECRET must have at least 32 characters');
 if (process.env.CORS_ORIGIN.split(',').some((origin) => !/^https?:\/\/[^\s*]+$/.test(origin.trim()))) throw new Error('Set explicit allowed browser origins');
+process.env.CORS_ORIGIN = process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim().replace(/\/+$/, '')).filter(Boolean).join(',');
 writeFileSync(join(process.env.RUNNER_TEMP, 'worker-secrets.json'), JSON.stringify(Object.fromEntries(keys.map((key) => [key, process.env[key]]))), { mode: 0o600 });
