@@ -62,15 +62,3 @@ jobs:
         run: |
           node -e 'const jobs = JSON.parse(process.env.RESULTS); if (jobs.changes.result !== "success" || Object.values(jobs).some(job => !["success", "skipped"].includes(job.result))) process.exit(1);'
 
-  deploy-dev:
-    name: Deploy dev
-    needs: [required, backend]
-    if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/'))
-    permissions:
-      contents: read
-      actions: read
-      deployments: write
-    uses: ./.github/workflows/deploy-dev.yml
-    secrets: inherit

@@ -9,9 +9,10 @@ on:
         default: dev
         required: true
       ci_run_id:
-        description: Successful EasyCart CI push run ID (feature/* for dev, main for any environment)
+        description: Successful EasyCart CI push run ID (leave blank to deploy latest successful build)
         type: string
-        required: true
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -45,6 +46,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CI_RUN_ID: ${{ inputs.ci_run_id }}
           TARGET_ENV: ${{ inputs.environment || 'dev' }}
+          BRANCH_NAME: ${{ github.ref_name }}
           AUTO_DEPLOY: 'false'
 
   integration:

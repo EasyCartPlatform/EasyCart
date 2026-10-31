@@ -93,7 +93,7 @@ These are three separate Worker configurations, not three VMs. They become hoste
 
 | Environment | Worker name | Release rule |
 | --- | --- | --- |
-| Dev | `easycart-api-dev` | Automatic in push CI after backend checks on main/feature branches; also supports manual deployment |
+| Dev | `easycart-api-dev` | Manual deployment via GitHub Actions (Deploy backend); also supports promotion to QA and Prod |
 | QA | `easycart-api-qa` | Manually promote an artifact that successfully deployed to dev |
 | Prod | `easycart-api-prod` | Manually promote an artifact that successfully deployed to QA |
 
@@ -106,8 +106,8 @@ The same bundled JavaScript artifact is used in each environment. It is not rebu
 3. In each environment you intend to enable, add **secrets**: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and a random `JWT_SECRET` of at least 32 characters. Use different JWT secrets and database credentials for each environment.
 4. Add **variables**: `BACKEND_URL` (for example, `https://easycart-api-dev.YOUR-SUBDOMAIN.workers.dev`) and `CORS_ORIGIN` (a comma-separated list of browser origins allowed to call that backend, without trailing slashes).
 5. Prepare and test the Supabase Auth migration described below. Only then set the environment variables `SUPABASE_AUTH_MIGRATED=true` and `DEPLOYMENT_ENABLED=true`.
-6. Start with dev only. Automatic dev deployment runs inside push CI when a backend artifact is built; `ENABLE_DEV_DEPLOY` is no longer used. Leave QA/prod disabled until you have isolated databases and have completed readiness checks.
-7. For manual deployment, open **Actions → Deploy backend → Run workflow**, select `main`, choose the environment, and provide the numeric run ID of a successful **EasyCart CI** push run on `main` that produced a backend artifact. Use that same ID to promote it to the next environment.
+6. Start with dev only. Deployments are manual on demand via **Actions → Deploy backend → Run workflow**. Leave QA/prod disabled until you have isolated databases and have completed readiness checks.
+7. To deploy, open **Actions → Deploy backend → Run workflow**, select your branch (`main` or `feature/*` for dev), choose the environment, and optionally provide a CI run ID (leave it blank to automatically deploy the latest successful CI build).
 
 All deployment switches default to disabled. Manual runs from `feature/*` can deploy dev. Successful main push CI artifacts are accepted for all environments. Trusted branches matching `feature/*` can also build and deploy dev artifacts, but cannot deploy QA/prod. Dev deployments skip the real Supabase integration suite; QA/prod deployments must pass it first. Database-independent CI checks remain required for every release. Wrangler uploads code and temporary-file secrets together, then the workflow checks `/api/health` and records the commit and CI run ID for the next promotion gate. A failed health check fails deployment; it does not automatically roll back a Worker already uploaded. After a deployment failure, inspect the logs and re-deploy the previous known-good artifact if necessary.
 

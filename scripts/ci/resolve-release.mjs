@@ -3,8 +3,16 @@ import { appendFileSync } from 'node:fs';
 import { github_api } from './github-api.mjs';
 import { validate_ci_release, previous_environment } from './release-rules.mjs';
 
-const run_id = process.env.CI_RUN_ID;
+let run_id = process.env.CI_RUN_ID?.trim();
 const target = process.env.TARGET_ENV || 'dev';
+if (!run_id) {
+  const branch = process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'main';
+  const data = await github_api(`actions/workflows/ci.yml/runs?branch=${encodeURIComponent(branch)}&status=success&event=push&per_page=1`);
+  if (!data.workflow_runs || data.workflow_runs.length === 0) {
+    throw new Error(`No successful EasyCart CI push run found on branch ${branch}`);
+  }
+  run_id = String(data.workflow_runs[0].id);
+}
 if (!/^\d+$/.test(run_id || '') || !['dev', 'qa', 'prod'].includes(target)) throw new Error('Choose a CI run ID and dev, qa, or prod');
 const run = await github_api(`actions/runs/${run_id}`);
 validate_ci_release(run, target);
