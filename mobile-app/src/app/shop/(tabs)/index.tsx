@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, TextInput } from '@/components/text';
 import { router } from 'expo-router';
 import { Icon, type IconName } from '@/components/icon';
@@ -18,6 +19,7 @@ import { useSession } from '@/lib/session';
 import { useShop } from '@/features/shop/shop-context';
 import { useCategories, useProducts, useStore, useStoreReviews } from '@/features/shop/shop-api';
 import { ReviewsStrip } from '@/features/shop/reviews-strip';
+import { OffersBannerCarousel } from '@/features/shop/offers-banner-carousel';
 import { ProductCard, productStock, useCardActions } from '@/features/shop/product-card';
 import { ProductRail } from '@/features/shop/product-rail';
 import { ApiError, errorMessage, fileUrl } from '@/lib/api';
@@ -85,19 +87,26 @@ export default function ShopHome() {
   const insets = useSafeAreaInsets();
   const deliveryTarget = getDeliveryTarget(activeAddress);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
-  const heroOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
-
-  const heroTranslateY = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [0, -16],
-    extrapolate: 'clamp'
-  });
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 3500,
+          useNativeDriver: true
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 3500,
+          useNativeDriver: true
+        })
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
 
   // 2 columns on phones, more on tablets; the page column is at most 720 wide.
   const contentWidth = Math.min(width, 720) - space.lg * 2;
@@ -137,20 +146,21 @@ export default function ShopHome() {
   const range = activeAddress || location ? checkDeliveryRange(store.data, activeAddress?.zip ?? null, activeAddress?.latitude !== undefined && activeAddress?.longitude !== undefined ? { latitude: activeAddress.latitude, longitude: activeAddress.longitude } : location?.coords) : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+    <LinearGradient
+      colors={[brand.primaryTint, brand.primarySoft, '#f8fafc', '#ffffff']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.4, y: 1 }}
+      style={{ flex: 1, paddingTop: insets.top }}
+    >
       <Screen
         preserveScroll
+        style={{ backgroundColor: 'transparent' }}
         onRefresh={() => { void store.refetch(); void products.refetch(); }}
         refreshing={products.isRefetching}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
         stickyHeaderIndices={[1]}
       >
-        {/* Index 0: Top Header Logo + Delivery Bar (fades out smoothly on scroll down) */}
-        <Animated.View style={{ opacity: heroOpacity, transform: [{ translateY: heroTranslateY }], gap: space.sm }}>
+        {/* Index 0: Top Header Logo + Delivery Bar + Hero Banner */}
+        <View style={{ gap: space.sm }}>
           <View style={styles.topHeader}>
             <ShopSwitcher name={store.data?.name ?? 'Shop'} logoUrl={fileUrl(store.data?.logo_url)} />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -159,32 +169,33 @@ export default function ShopHome() {
             </View>
           </View>
 
-          {/* Delivery & ETA Bar (Quick-Commerce style) */}
+          {/* Delivery & ETA Bar */}
           <PressScale
             onPress={() => router.push('/shop/addresses')}
             style={[
               styles.deliveryBar,
               {
-                backgroundColor: brand.primarySoft || '#ecfdf5',
-                borderColor: brand.primaryTint || '#d1fae5'
+                backgroundColor: brand.primarySoft,
+                borderColor: brand.primaryTint
               }
             ]}
             accessibilityRole="button"
             accessibilityLabel={t('Change delivery address')}
           >
-            <View style={[styles.deliveryPinCircle, { borderColor: brand.primaryTint || '#e0f2fe' }]}>
-              <Icon name="map-pin" size={14} color={brand.primary || '#0284c7'} />
+            <View style={[styles.deliveryPinCircle, { borderColor: brand.primaryTint, backgroundColor: brand.primaryTint }]}>
+              <Icon name="map-pin" size={14} color={brand.primary} />
             </View>
             <View style={styles.deliveryContent}>
+              <Text style={[styles.deliveryDeliverTo, { color: brand.primary }]}>{t('DELIVER TO')}</Text>
               <Text style={styles.deliveryTitle} numberOfLines={1} ellipsizeMode="tail">
-                {deliveryTarget ?? t('Select delivery address')}
+                {deliveryTarget ?? t('Add a delivery address')}
               </Text>
-              <Icon name="chevron-right" size={13} color={brand.primary || '#0284c7'} />
             </View>
+            <Icon name="chevron-right" size={14} color={brand.primary} />
             {range?.isEligible && (
-              <View style={[styles.etaPill, { borderColor: brand.primaryTint || '#e0f2fe' }]}>
-                <Icon name="zap" size={11} color="#0284c7" />
-                <Text style={styles.etaText}>
+              <View style={[styles.etaPill, { borderColor: brand.primaryTint }]}>
+                <Icon name="zap" size={11} color={brand.primary} />
+                <Text style={[styles.etaText, { color: brand.primary }]}>
                   {(() => { const eta = estimateDelivery(range.distanceKm); return `${eta.low}–${eta.high} min`; })()}
                 </Text>
               </View>
@@ -193,18 +204,107 @@ export default function ShopHome() {
 
           {range && !range.isEligible && <Notice tone="warning" icon="alert-triangle">{range.message}. Pickup is still available at checkout.</Notice>}
 
-          {store.data.promotion_banner_text ? (
-            <View style={styles.promo}>
-              <View style={styles.promoIcon}><Icon name="gift" size={18} color={accents.amber.fg} /></View>
-              <Text style={styles.promoText} numberOfLines={2}>{store.data.promotion_banner_text}</Text>
+          {/* Theme Gradient Storefront Hero Banner */}
+          <LinearGradient
+            colors={brand.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.heroBannerCard, { shadowColor: brand.primary }]}
+          >
+            {/* Animated decorative gradient orbs */}
+            <Animated.View
+              style={[
+                styles.heroGlowCircle1,
+                {
+                  backgroundColor: brand.primaryTint,
+                  opacity: pulseAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.35, 0.65]
+                  }),
+                  transform: [
+                    {
+                      scale: pulseAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 1.15]
+                      })
+                    }
+                  ]
+                }
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.heroGlowCircle2,
+                {
+                  backgroundColor: brand.primaryDark,
+                  opacity: pulseAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.25, 0.55]
+                  }),
+                  transform: [
+                    {
+                      scale: pulseAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 1.2]
+                      })
+                    }
+                  ]
+                }
+              ]}
+            />
+
+            {/* Top pill badge */}
+            <View style={styles.heroBadgeRow}>
+              <View style={styles.heroTopBadge}>
+                <Icon name="check-circle" size={12} color="#ffffff" />
+                <Text style={styles.heroTopBadgeText}>Local store · Delivered</Text>
+              </View>
             </View>
-          ) : null}
-        </Animated.View>
+
+            {/* Store Title & Description */}
+            <Text style={styles.heroStoreTitle} numberOfLines={2}>
+              {t('Welcome to')} {store.data?.name ?? 'Shop'}
+            </Text>
+
+            {store.data?.address ? (
+              <Text style={styles.heroStoreAddress} numberOfLines={1}>
+                {store.data.address} · {t('Delivered to your door.')}
+              </Text>
+            ) : (
+              <Text style={styles.heroStoreAddress} numberOfLines={1}>
+                {t('Fresh essentials, straight to your doorstep.')}
+              </Text>
+            )}
+
+            {/* Rating pill */}
+            <View style={styles.heroBottomRow}>
+              {reviews.data?.average ? (
+                <View style={styles.heroRatingPill}>
+                  <Text style={styles.heroRatingStar}>★</Text>
+                  <Text style={styles.heroRatingText}>
+                    {reviews.data.average.toFixed(1)} {t('out of 5')} · {reviews.data.count} {t('ratings')}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.heroRatingPill}>
+                  <Icon name="award" size={12} color="#fef08a" />
+                  <Text style={styles.heroRatingText}>{t('Trusted local store')}</Text>
+                </View>
+              )}
+            </View>
+          </LinearGradient>
+
+          {/* Multi-Offer Auto-sliding Banner */}
+          <OffersBannerCarousel
+            rawOffers={store.data.promotion_banner_text}
+            fallbackText={t('Free delivery over ₹499 this week')}
+          />
+        </View>
 
         {/* Index 1: Sticky Header with Search Bar + Filters */}
-        <View style={styles.stickyFilterContainer}>
+        <View style={[styles.stickyFilterContainer, { backgroundColor: brand.primarySoft }]}>
           <View style={styles.searchRow}>
-            <View style={styles.search}>
+            <View style={[styles.search, { borderColor: brand.primaryTint }]}>
               <Icon name="search" size={16} color={colors.textFaint} />
               <TextInput
                 value={search}
@@ -225,7 +325,7 @@ export default function ShopHome() {
               onPress={openFilterModal}
               style={[
                 styles.filterIconButton,
-                activeFilterCount > 0 && styles.filterIconButtonActive
+                activeFilterCount > 0 && [styles.filterIconButtonActive, { borderColor: brand.primary, backgroundColor: brand.primarySoft }]
               ]}
               accessibilityLabel="Open filters"
               accessibilityRole="button"
@@ -304,7 +404,7 @@ export default function ShopHome() {
                 <View style={styles.modalOptionsWrap}>
                   <Pressable
                     onPress={() => setPendingCategory('')}
-                    style={[styles.modalOptionChip, pendingCategory === '' && styles.modalOptionChipActive]}
+                    style={[styles.modalOptionChip, pendingCategory === '' && [styles.modalOptionChipActive, { backgroundColor: brand.primary, borderColor: brand.primary }]]}
                   >
                     <Text style={[styles.modalOptionText, pendingCategory === '' && styles.modalOptionTextActive]}>
                       {t('All')}
@@ -316,7 +416,7 @@ export default function ShopHome() {
                       <Pressable
                         key={cat.id}
                         onPress={() => setPendingCategory(isSelected ? '' : cat.id)}
-                        style={[styles.modalOptionChip, isSelected && styles.modalOptionChipActive]}
+                        style={[styles.modalOptionChip, isSelected && [styles.modalOptionChipActive, { backgroundColor: brand.primary, borderColor: brand.primary }]]}
                       >
                         <Text style={[styles.modalOptionText, isSelected && styles.modalOptionTextActive]}>
                           {cat.name}
@@ -342,7 +442,7 @@ export default function ShopHome() {
                       <Pressable
                         key={opt.value}
                         onPress={() => setPendingView(opt.value as View_)}
-                        style={[styles.modalOptionChip, isSelected && styles.modalOptionChipActive]}
+                        style={[styles.modalOptionChip, isSelected && [styles.modalOptionChipActive, { backgroundColor: brand.primary, borderColor: brand.primary }]]}
                       >
                         <Text style={[styles.modalOptionText, isSelected && styles.modalOptionTextActive]}>
                           {opt.label}
@@ -359,7 +459,7 @@ export default function ShopHome() {
                 <View style={styles.modalOptionsWrap}>
                   <Pressable
                     onPress={() => setPendingInStockOnly((v) => !v)}
-                    style={[styles.modalOptionChip, pendingInStockOnly && styles.modalOptionChipActive]}
+                    style={[styles.modalOptionChip, pendingInStockOnly && [styles.modalOptionChipActive, { backgroundColor: brand.primary, borderColor: brand.primary }]]}
                   >
                     <Text style={[styles.modalOptionText, pendingInStockOnly && styles.modalOptionTextActive]}>
                       {t('In stock only')}
@@ -397,15 +497,109 @@ export default function ShopHome() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </LinearGradient>
   );
 }
 
 
 const styles = StyleSheet.create({
-  promo: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: accents.amber.bg, borderRadius: radius.lg, padding: space.md },
-  promoIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
-  promoText: { flex: 1, fontSize: 13, fontWeight: '700', color: '#92400e' },
+  // Blue Gradient Hero Banner
+  heroBannerCard: {
+    borderRadius: radius.xl,
+    padding: space.lg,
+    overflow: 'hidden',
+    position: 'relative',
+    gap: space.sm,
+    shadowColor: '#0284c7',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 4
+  },
+  heroGlowCircle1: {
+    position: 'absolute',
+    right: -25,
+    top: -25,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#38bdf8'
+  },
+  heroGlowCircle2: {
+    position: 'absolute',
+    right: 20,
+    bottom: -35,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#0284c7'
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  heroTopBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)'
+  },
+  heroTopBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2
+  },
+  heroStoreTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: -0.4,
+    lineHeight: 28,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3
+  },
+  heroStoreAddress: {
+    fontSize: 12.5,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+    marginTop: -2
+  },
+  heroBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 6,
+    gap: space.sm
+  },
+  heroRatingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)'
+  },
+  heroRatingStar: {
+    color: '#fef08a',
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  heroRatingText: {
+    color: '#ffffff',
+    fontSize: 11.5,
+    fontWeight: '700'
+  },
+
   topHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 2 },
   deliveryBar: {
     flexDirection: 'row',
@@ -437,11 +631,16 @@ const styles = StyleSheet.create({
   },
   deliveryContent: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: 1,
     minWidth: 0,
-    marginRight: 2
+    marginRight: 4
+  },
+  deliveryDeliverTo: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#0284c7',
+    letterSpacing: 0.5
   },
   deliveryTitle: {
     flexShrink: 1,
@@ -470,10 +669,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0284c7'
   },
-  stickyFilterContainer: { backgroundColor: colors.bg, paddingVertical: 4, gap: space.xs, zIndex: 10 },
+  stickyFilterContainer: { backgroundColor: '#f0f9ff', paddingVertical: 4, gap: space.xs, zIndex: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: 4 },
-  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, height: 48, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, paddingHorizontal: space.lg },
+  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, height: 48, borderRadius: radius.pill, borderWidth: 1, borderColor: '#e0f2fe', backgroundColor: colors.white, paddingHorizontal: space.lg },
   searchInput: { flex: 1, fontSize: 15, color: colors.text, height: '100%' },
   filterIconButton: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   filterIconButtonActive: { borderColor: '#0284c7', backgroundColor: '#f0f9ff' },

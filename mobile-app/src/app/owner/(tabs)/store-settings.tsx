@@ -9,7 +9,17 @@ import { errorMessage } from '@/lib/api';
 import { MapPicker } from '@/components/map-picker';
 import { ThemePicker } from '@/features/owner/theme-picker';
 import { describePlace, readCurrentPosition, type Coords } from '@/lib/location';
-import { colors, space, text } from '@/theme/theme';
+import { Icon } from '@/components/icon';
+import { PressScale } from '@/components/motion';
+import {
+  parseStoreOffers,
+  serializeStoreOffers,
+  OFFER_ICON_OPTIONS,
+  OFFER_PRESETS,
+  type StoreOffer
+} from '@/features/shop/store-offers';
+import { OffersBannerCarousel } from '@/features/shop/offers-banner-carousel';
+import { colors, radius, space, text } from '@/theme/theme';
 
 export default function OwnerStoreSettings() {
   const { data: store, isLoading, refetch, isRefetching } = useOwnStore();
@@ -17,6 +27,7 @@ export default function OwnerStoreSettings() {
   const publish = useRefreshingAction(manageCalls.setPublished, ['store']);
   const toast = useToast();
   const [form, setForm] = useState({ name: '', delivery_fee: '', radius: '', pincode: '', address: '', banner: '' });
+  const [offers, setOffers] = useState<StoreOffer[]>([]);
   // Where the shop is on the map. Customers' "Shops near you" list and rider dispatch both use it.
   const [pin, setPin] = useState<Coords | null>(null);
   const [mapStart, setMapStart] = useState<Coords | null>(null);
@@ -32,6 +43,15 @@ export default function OwnerStoreSettings() {
       address: store.address ?? '',
       banner: store.promotion_banner_text ?? ''
     });
+    const parsedOffers = parseStoreOffers(store.promotion_banner_text);
+    setOffers(
+      parsedOffers.length > 0
+        ? parsedOffers
+        : [
+            { id: '1', text: 'Free delivery over ₹499 this week', icon: 'truck', code: 'FREEDEL', badge: 'FREE' },
+            { id: '2', text: 'Flat 20% OFF on all grocery essentials', icon: 'tags', code: 'SAVE20', badge: '20% OFF' }
+          ]
+    );
     if (store.latitude != null && store.longitude != null) {
       const saved = { latitude: store.latitude, longitude: store.longitude };
       setPin(saved);
@@ -76,8 +96,17 @@ export default function OwnerStoreSettings() {
     if (form.name.trim().length < 2) { toast('The store name needs at least 2 letters', 'error'); return; }
     if (Number.isNaN(fee) || fee < 0) { toast('Delivery fee must be 0 or more', 'error'); return; }
     if (Number.isNaN(radius) || radius < 0.5 || radius > 100) { toast('Delivery radius must be between 0.5 and 100 km', 'error'); return; }
+    const serializedOffers = serializeStoreOffers(offers);
     save.mutate(
-      { name: form.name.trim(), delivery_fee: fee, max_delivery_radius_km: radius, pincode: form.pincode.trim(), address: form.address.trim(), promotion_banner_text: form.banner.trim(), ...(pin ? { latitude: pin.latitude, longitude: pin.longitude } : {}) },
+      {
+        name: form.name.trim(),
+        delivery_fee: fee,
+        max_delivery_radius_km: radius,
+        pincode: form.pincode.trim(),
+        address: form.address.trim(),
+        promotion_banner_text: serializedOffers,
+        ...(pin ? { latitude: pin.latitude, longitude: pin.longitude } : {})
+      },
       { onSuccess: () => toast('Store settings saved', 'success'), onError: (e) => toast(errorMessage(e), 'error') }
     );
   }
@@ -116,10 +145,166 @@ export default function OwnerStoreSettings() {
 
       <ThemePicker current={store.color_theme} />
 
-      <Card title="Delivery and announcement" icon="truck">
+      <Card title="Delivery settings" icon="truck">
         <Field label="Standard delivery fee (₹)" value={form.delivery_fee} onChangeText={set('delivery_fee')} keyboardType="decimal-pad" placeholder="0" />
         <Field label="Max delivery radius (km)" value={form.radius} onChangeText={set('radius')} keyboardType="decimal-pad" placeholder="5" />
-        <Field label="Storefront announcement" hint="Shown to shoppers at the top of your shop" value={form.banner} onChangeText={set('banner')} multiline placeholder="e.g. Free delivery this weekend!" />
+      </Card>
+
+      <Card title="Storefront Offers & Promos" icon="gift">
+        <Text style={text.muted}>
+          Add offers that will auto-slide on the top of your shop. Customers can see codes and tap to use them.
+        </Text>
+
+        {/* Live Preview */}
+        {offers.length > 0 && (
+          <View style={{ gap: space.xs, marginVertical: 4 }}>
+            <Text style={[text.small, { color: colors.textMuted, fontWeight: '700' }]}>
+              LIVE PREVIEW ({offers.length} {offers.length === 1 ? 'offer' : 'offers'})
+            </Text>
+            <OffersBannerCarousel rawOffers={serializeStoreOffers(offers)} />
+          </View>
+        )}
+
+        {/* Quick presets */}
+        <View style={{ gap: space.xs }}>
+          <Text style={[text.small, { color: colors.textMuted, fontWeight: '700' }]}>QUICK PRESETS</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {OFFER_PRESETS.map((preset, idx) => (
+              <PressScale
+                key={idx}
+                onPress={() => {
+                  if (offers.length >= 5) {
+                    toast('Maximum 5 active offers allowed', 'error');
+                    return;
+                  }
+                  setOffers((prev) => [
+                    ...prev,
+                    {
+                      id: String(Date.now() + idx),
+                      text: preset.text,
+                      icon: preset.icon,
+                      code: preset.code,
+                      badge: preset.badge
+                    }
+                  ]);
+                }}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: radius.pill,
+                  backgroundColor: '#f0f9ff',
+                  borderWidth: 1,
+                  borderColor: '#bae6fd'
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284c7' }}>
+                  + {preset.badge}
+                </Text>
+              </PressScale>
+            ))}
+          </View>
+        </View>
+
+        {/* List of active offers */}
+        {offers.map((offer, index) => (
+          <View
+            key={offer.id || index}
+            style={{
+              padding: space.md,
+              borderRadius: radius.md,
+              backgroundColor: colors.bg,
+              borderWidth: 1,
+              borderColor: colors.borderSoft,
+              gap: space.sm
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontWeight: '800', fontSize: 13, color: colors.text }}>
+                Offer #{index + 1}
+              </Text>
+              <PressScale
+                onPress={() => setOffers((prev) => prev.filter((_, i) => i !== index))}
+                hitSlop={8}
+              >
+                <Icon name="trash-2" size={16} color="#ef4444" />
+              </PressScale>
+            </View>
+
+            <Field
+              label="Offer description"
+              placeholder="e.g. Free delivery over ₹499 this week"
+              value={offer.text}
+              onChangeText={(val) => {
+                setOffers((prev) =>
+                  prev.map((o, i) => (i === index ? { ...o, text: val } : o))
+                );
+              }}
+            />
+
+            <Field
+              label="Coupon Code (optional)"
+              placeholder="e.g. FREEDEL"
+              value={offer.code ?? ''}
+              autoCapitalize="characters"
+              onChangeText={(val) => {
+                setOffers((prev) =>
+                  prev.map((o, i) => (i === index ? { ...o, code: val.toUpperCase() } : o))
+                );
+              }}
+            />
+
+            {/* Icon picker chips */}
+            <View style={{ gap: 4 }}>
+              <Text style={[text.small, { color: colors.textMuted }]}>Icon</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {OFFER_ICON_OPTIONS.map((ico) => {
+                  const isSelected = (offer.icon || 'gift') === ico.name;
+                  return (
+                    <PressScale
+                      key={ico.name}
+                      onPress={() => {
+                        setOffers((prev) =>
+                          prev.map((o, i) => (i === index ? { ...o, icon: ico.name } : o))
+                        );
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        paddingHorizontal: 9,
+                        paddingVertical: 5,
+                        borderRadius: radius.pill,
+                        backgroundColor: isSelected ? '#0284c7' : colors.card,
+                        borderWidth: 1,
+                        borderColor: isSelected ? '#0284c7' : colors.borderSoft
+                      }}
+                    >
+                      <Icon name={ico.name} size={13} color={isSelected ? '#ffffff' : colors.text} />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: isSelected ? '#ffffff' : colors.text }}>
+                        {ico.label}
+                      </Text>
+                    </PressScale>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        ))}
+
+        {offers.length < 5 && (
+          <Button
+            small
+            variant="outline"
+            icon="plus"
+            label="Add custom offer"
+            onPress={() => {
+              setOffers((prev) => [
+                ...prev,
+                { id: String(Date.now()), text: '', icon: 'gift' }
+              ]);
+            }}
+          />
+        )}
       </Card>
 
       <Notice icon="info">Logo and banner images can be changed on the website for now.</Notice>

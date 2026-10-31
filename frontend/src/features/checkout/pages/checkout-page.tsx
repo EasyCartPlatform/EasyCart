@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { CheckCircle2, MapPin, Check, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 
 import { Input } from '@/components/ui/input';
@@ -117,7 +116,7 @@ function getAddressLines(addr?: SavedAddress, rawAddressStr?: string) {
 
 export function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: store, isLoading, isError } = usePublicStore(slug!);
+  const { data: store } = usePublicStore(slug!);
   const { lines, total } = useCart();
   const checkoutMutation = useCheckout(slug!);
   const [fulfillmentMethod, setFulfillmentMethod] = useState<'pickup' | 'delivery'>('delivery');

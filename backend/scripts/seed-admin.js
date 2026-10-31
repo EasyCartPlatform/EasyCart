@@ -2,8 +2,8 @@
 //   node scripts/seed-admin.js <email> <password> <username>
 import { randomUUID } from 'node:crypto';
 import { connect_db } from '../src/platform/db/db.js';
-import { hash_password } from '../src/platform/shared/hash.js';
-import { find_user_by_email, save_user } from '../src/modules/users/repositories/user-repository.js';
+import { save_password_account } from '../src/platform/auth/account-passwords.js';
+import { find_user_by_email } from '../src/modules/users/repositories/user-repository.js';
 
 async function main() {
   const [email, password, username] = process.argv.slice(2);
@@ -20,16 +20,14 @@ async function main() {
     process.exit(1);
   }
 
-  const password_hash = await hash_password(password);
-  await save_user({
+  await save_password_account({
     id: randomUUID(),
     username,
     email,
     phone_number: '0000000000',
-    password_hash,
     role: 'platform_admin',
     tenant_id: null
-  });
+  }, password);
 
   console.log(`Created platform_admin user: ${email}`);
   process.exit(0);

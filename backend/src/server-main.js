@@ -103,6 +103,6 @@ export async function start_server_main() {
   });
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && process.env.RUNTIME !== 'cloudflare') {
   start_server_main();
 }

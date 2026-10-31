@@ -1,9 +1,9 @@
 // Delivery partner sign-up and the application they fill in (profile, vehicle, documents) before an admin reviews it.
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../../../platform/shared/app-error.js';
-import { hash_password } from '../../../platform/shared/hash.js';
+import { save_password_account } from '../../../platform/auth/account-passwords.js';
 import { sign_token } from '../../../platform/shared/jwt.js';
-import { find_user_by_email, save_user } from '../../users/repositories/user-repository.js';
+import { find_user_by_email } from '../../users/repositories/user-repository.js';
 import { find_rider_by_user_id, save_rider, update_rider } from '../repositories/rider-repository.js';
 import { rider_signup_schema, rider_profile_schema, document_upload_schema, location_schema, MAX_OTHER_DOCUMENTS, issues_message } from '../delivery-schemas.js';
 import { to_full_rider, find_missing_steps, pick_profile_fields } from '../lib/rider-views.js';
@@ -28,7 +28,7 @@ export async function register_rider(payload) {
 
   let user;
   try {
-    user = await save_user({ id: randomUUID(), username, email, phone_number, password_hash: await hash_password(password), role: 'delivery_partner', tenant_id: null });
+    user = await save_password_account({ id: randomUUID(), username, email, phone_number, role: 'delivery_partner', tenant_id: null }, password);
   } catch (err) {
     if (is_duplicate_error(err)) throw new AppError('That username or email is already taken', 409);
     throw err;

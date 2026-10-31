@@ -305,8 +305,8 @@ export default function CustomerOrderScreen() {
                 <View style={styles.orderItemInfo}>
                   <ContentText value={item.name} style={styles.orderItemName} numberOfLines={2} />
                   {item.variant_label ? (
-                    <View style={styles.orderItemOptionBadge}>
-                      <Text style={styles.orderItemOptionText}>{item.variant_label}</Text>
+                    <View style={[styles.orderItemOptionBadge, { backgroundColor: brand.primarySoft || colors.borderSoft, borderColor: brand.primaryTint || colors.borderSoft, borderWidth: 1 }]}>
+                      <Text style={[styles.orderItemOptionText, { color: brand.primaryDark || colors.textMuted }]}>{item.variant_label}</Text>
                     </View>
                   ) : null}
                   <Text style={styles.orderItemUnitPrice}>

@@ -1,0 +1,44 @@
+name: Backend Supabase integration
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-ci-database
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ci
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DB_PROVIDER: supabase
+      SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.CI_SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Require a disposable CI database
+        run: |
+          test -n "$SUPABASE_URL" && test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo '::error::Configure CI_SUPABASE_URL and CI_SUPABASE_SERVICE_ROLE_KEY in the ci environment. Never use production.'; exit 1; }
+      - run: npm ci
+      - run: npm run test:integration

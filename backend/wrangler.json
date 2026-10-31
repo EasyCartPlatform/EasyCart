@@ -1,0 +1,113 @@
+{
+  "name": "easycart-api",
+  "main": "src/worker-entry.js",
+  "compatibility_date": "2026-10-18",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "enable_nodejs_http_server_modules",
+    "nodejs_compat_populate_process_env"
+  ],
+  "workers_dev": true,
+  "keep_vars": true,
+  "env": {
+    "dev": {
+      "name": "easycart-api-dev",
+      "vars": {
+        "NODE_ENV": "production",
+        "RUNTIME": "cloudflare",
+        "DB_PROVIDER": "supabase",
+        "AUTH_PROVIDER": "supabase"
+      },
+      "triggers": {
+        "crons": [
+          "* * * * *"
+        ]
+      },
+      "ratelimits": [
+        {
+          "name": "API_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 600,
+            "period": 60
+          }
+        },
+        {
+          "name": "WRITE_LIMITER",
+          "namespace_id": "1002",
+          "simple": {
+            "limit": 20,
+            "period": 60
+          }
+        }
+      ]
+    },
+    "qa": {
+      "name": "easycart-api-qa",
+      "vars": {
+        "NODE_ENV": "production",
+        "RUNTIME": "cloudflare",
+        "DB_PROVIDER": "supabase",
+        "AUTH_PROVIDER": "supabase"
+      },
+      "triggers": {
+        "crons": [
+          "* * * * *"
+        ]
+      },
+      "ratelimits": [
+        {
+          "name": "API_LIMITER",
+          "namespace_id": "1003",
+          "simple": {
+            "limit": 600,
+            "period": 60
+          }
+        },
+        {
+          "name": "WRITE_LIMITER",
+          "namespace_id": "1004",
+          "simple": {
+            "limit": 20,
+            "period": 60
+          }
+        }
+      ]
+    },
+    "prod": {
+      "name": "easycart-api-prod",
+      "vars": {
+        "NODE_ENV": "production",
+        "RUNTIME": "cloudflare",
+        "DB_PROVIDER": "supabase",
+        "AUTH_PROVIDER": "supabase"
+      },
+      "triggers": {
+        "crons": [
+          "* * * * *"
+        ]
+      },
+      "ratelimits": [
+        {
+          "name": "API_LIMITER",
+          "namespace_id": "1005",
+          "simple": {
+            "limit": 600,
+            "period": 60
+          }
+        },
+        {
+          "name": "WRITE_LIMITER",
+          "namespace_id": "1006",
+          "simple": {
+            "limit": 20,
+            "period": 60
+          }
+        }
+      ]
+    }
+  },
+  "alias": {
+    "mongoose": "./node_modules/mongoose/index.js"
+  }
+}

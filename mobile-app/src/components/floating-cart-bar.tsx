@@ -6,12 +6,14 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Text } from '@/components/text';
 import { Icon } from '@/components/icon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShop } from '@/features/shop/shop-context';
 import { useBrand } from '@/lib/brand';
 
 export function FloatingCartBar() {
   const { lines } = useShop();
   const brand = useBrand();
+  const insets = useSafeAreaInsets();
 
   const totalItems = lines.length;
 
@@ -35,8 +37,8 @@ export function FloatingCartBar() {
     <View
       style={[
         styles.outerWrap,
-        // The tab bar below already clears the home indicator, so only a small gap is needed.
-        { bottom: 12 }
+        // Sits above the floating dark navbar
+        { bottom: Math.max(insets.bottom + 4, 16) + 76 }
       ]}
       pointerEvents="box-none"
     >
@@ -68,7 +70,7 @@ export function FloatingCartBar() {
                 />
               ) : (
                 <View style={styles.thumbnailPlaceholder}>
-                  <Icon name="shopping-bag" size={16} color="#0284c7" />
+                  <Icon name="shopping-bag" size={16} color={brand.primary} />
                 </View>
               )}
             </View>

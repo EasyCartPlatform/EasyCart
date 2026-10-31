@@ -1,6 +1,6 @@
 // Building blocks every screen uses, in the website's look: white rounded cards on slate, sky buttons, soft badges.
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, View, type TextInputProps, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, type StyleProp, StyleSheet, View, type TextInputProps, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, TextInput } from './text';
 import { Icon } from './icon';
@@ -30,7 +30,9 @@ export function Screen({
   stickyHeaderIndices,
   noPadding,
   scrollRef: externalScrollRef,
-  preserveScroll = false
+  preserveScroll = false,
+  gradientBackground = true,
+  style
 }: {
   children: ReactNode;
   onRefresh?(): void;
@@ -42,7 +44,10 @@ export function Screen({
   noPadding?: boolean;
   scrollRef?: any;
   preserveScroll?: boolean;
+  gradientBackground?: boolean;
+  style?: StyleProp<ViewStyle>;
 }) {
+  const brand = useBrand();
   const { pagePadding } = useScreen();
   const rootRef = useRef<View>(null);
   const internalScrollRef = useRef<ScrollView>(null);
@@ -80,10 +85,20 @@ export function Screen({
 
   return (
     <ScrollToInputContext.Provider value={scrollToInput}>
-    <View ref={rootRef} style={[styles.screen, { paddingBottom: covered }]}>
+    <View ref={rootRef} style={[styles.screen, { backgroundColor: 'transparent' }, style, { paddingBottom: covered }]}>
+      {gradientBackground && (
+        <LinearGradient
+          colors={[brand.primaryTint, brand.primarySoft, '#f8fafc', '#ffffff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.4, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
       <ScrollView
         ref={scrollRef}
         keyboardDismissMode="on-drag"
+        style={{ backgroundColor: 'transparent' }}
         contentContainerStyle={[
           styles.screenContent,
           noPadding
@@ -94,7 +109,7 @@ export function Screen({
         onScroll={onScroll}
         scrollEventThrottle={scrollEventThrottle}
         stickyHeaderIndices={stickyHeaderIndices}
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} /> : undefined}
+        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.primary || colors.primary} /> : undefined}
       >
         {stickyHeaderIndices || noPadding ? children : <View style={styles.column}>{children}</View>}
       </ScrollView>

@@ -3,6 +3,8 @@ import { get_supabase } from '../../../platform/db/db.js';
 import { DB_PROVIDER } from '../../../env.js';
 import { chunk_array } from '../../../platform/shared/chunk-array.js';
 import { User } from './user-model.js';
+import { use_supabase_passwords } from '../../../platform/auth/password-provider.js';
+import { AppError } from '../../../platform/shared/app-error.js';
 import {
   set_user_status,
   set_user_last_active,
@@ -192,6 +194,13 @@ export async function count_platform_admins() {
 
 export async function update_user_fields(id, fields) {
   const { status, last_active_at, avatar_url, ...tableFields } = fields;
+
+  if (tableFields.email !== undefined) {
+    const user = await find_user_by_id(id);
+    if (user && tableFields.email !== user.email && (use_supabase_passwords() || user.password_hash?.startsWith('supabase:'))) {
+      throw new AppError('Please contact support to change your sign-in email.', 409);
+    }
+  }
 
   if (status !== undefined) {
     await set_user_status(id, status);

@@ -1,6 +1,7 @@
 // Shown right after checkout: a small celebration, then a clear way to track the order or keep shopping.
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -12,10 +13,12 @@ import { useMyOrder } from '@/features/shop/shop-api';
 import { price, shortId } from '@/lib/format';
 import { colors, space, text } from '@/theme/theme';
 import { useT } from '@/lib/i18n';
+import { useBrand } from '@/lib/brand';
 
 function OrderPlaced() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: order } = useMyOrder(id);
+  const brand = useBrand();
   const pop = useSharedValue(0);
   const t = useT();
 
@@ -30,6 +33,13 @@ function OrderPlaced() {
 
   return (
     <View style={styles.screen}>
+      <LinearGradient
+        colors={[brand.primaryTint, brand.primarySoft, '#f8fafc', '#ffffff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.4, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <Confetti />
       <View style={styles.content}>
         <Animated.View style={[styles.check, checkStyle]}>

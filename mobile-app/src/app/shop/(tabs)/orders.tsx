@@ -233,7 +233,7 @@ export default function OrdersScreen() {
                       ) : !isCancelled ? (
                         <PressScale
                           onPress={() => reorder(order)}
-                          style={[styles.reorderBtn, { borderColor: brand.primary, backgroundColor: '#f0f9ff' }]}
+                          style={[styles.reorderBtn, { borderColor: brand.primary, backgroundColor: brand.primarySoft || colors.primarySoft }]}
                         >
                           <Icon name="refresh-cw" size={13} color={brand.primaryDark || colors.primary} />
                           <Text style={[styles.reorderBtnText, { color: brand.primaryDark || colors.primary }]}>

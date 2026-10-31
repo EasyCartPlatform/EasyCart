@@ -14,7 +14,7 @@ import { manageCalls, useRefreshingAction } from './owner-api';
 
 export function ThemePicker({ current }: { current: string | null | undefined }) {
   const settings = useThemeSettings();
-  const save = useRefreshingAction(manageCalls.setColorTheme, ['store']);
+  const save = useRefreshingAction(manageCalls.setColorTheme, ['store', 'storefront']);
   const toast = useToast();
   const enabled = settings.data?.enabled ?? [];
   const chosen = current && enabled.includes(current as never) ? current : settings.data?.default;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Bike, CheckCircle2, CheckCheck, MapPin } from 'lucide-react';
+import { Bell, Bike, CheckCircle2, CheckCheck, MapPin, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +52,7 @@ export function RiderNotificationBell({ isApproved = true }: { isApproved?: bool
   const [localReadIds, setLocalReadIds] = useState<Set<string>>(() => getStoredReadIds());
 
   const offers = home?.offers ?? [];
-  const activeDelivery = home?.active;
+  const activeDeliveries = home?.active ?? [];
 
   const rawNotifications: Array<{
     id: string;
@@ -60,12 +60,12 @@ export function RiderNotificationBell({ isApproved = true }: { isApproved?: bool
     created_at: string;
     title: string;
     message: string;
-    icon: any;
+    icon: LucideIcon;
     tone: string;
     is_read: boolean;
   }> = [];
 
-  if (activeDelivery && activeDelivery.id) {
+  activeDeliveries.forEach((activeDelivery) => {
     const id = `delivery_${activeDelivery.id}_${activeDelivery.stage ?? 'active'}`;
     const createdAt = activeDelivery.created_at || new Date().toISOString();
     rawNotifications.push({
@@ -73,14 +73,14 @@ export function RiderNotificationBell({ isApproved = true }: { isApproved?: bool
       link: `/rider/orders/${activeDelivery.id}`,
       created_at: createdAt,
       title: `Active Delivery #${shortOrderId(activeDelivery.id)}`,
-      message: activeDelivery.stage === 'to_store'
-        ? `Pick up order at ${activeDelivery.store_name ?? 'Store'}`
+      message: activeDelivery.stage === 'to_pickup'
+        ? `Pick up order at ${activeDelivery.store.name ?? 'Store'}`
         : `Deliver order to ${activeDelivery.delivery_address ?? 'Customer'}`,
       icon: MapPin,
       tone: 'bg-amber-100 text-amber-700',
       is_read: localReadIds.has(id)
     });
-  }
+  });
 
   offers.forEach((offer) => {
     if (!offer || !offer.id) return;
@@ -92,7 +92,7 @@ export function RiderNotificationBell({ isApproved = true }: { isApproved?: bool
       link: '/rider',
       created_at: createdAt,
       title: `New Order Offer #${shortOrderId(offer.id)}`,
-      message: `Delivery fee: Rs. ${fee.toFixed(2)} · ${offer.store_name ?? 'Store'}`,
+      message: `Delivery fee: Rs. ${fee.toFixed(2)} · ${offer.store.name ?? 'Store'}`,
       icon: Bike,
       tone: 'bg-sky-100 text-sky-700',
       is_read: localReadIds.has(id)

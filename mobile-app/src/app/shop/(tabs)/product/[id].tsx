@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, Share, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { Text } from '@/components/text';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -200,6 +201,13 @@ export default function ProductScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <LinearGradient
+        colors={[brand.primaryTint, brand.primarySoft, '#f8fafc', '#ffffff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.4, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       {/* Floating Top Header Bar */}
       <View style={[styles.topHeaderBar, { paddingTop: insets.top }]}>
         {/* Animated background that fades in when scrolling down */}
@@ -382,7 +390,7 @@ export default function ProductScreen() {
               {images.map((_, idx) => (
                 <View
                   key={idx}
-                  style={[styles.dot, idx === photo && styles.dotActive]}
+                  style={[styles.dot, idx === photo && [styles.dotActive, { backgroundColor: brand.primary }]]}
                 />
               ))}
             </View>
@@ -400,7 +408,7 @@ export default function ProductScreen() {
                   <Pressable
                     key={`${uri}-${index}`}
                     onPress={() => handleThumbnailPress(index)}
-                    style={[styles.thumb, active && styles.thumbActive]}
+                    style={[styles.thumb, active && [styles.thumbActive, { borderColor: brand.primary }]]}
                     accessibilityLabel={`View photo ${index + 1}`}
                   >
                     <Image source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="contain" />
@@ -445,9 +453,9 @@ export default function ProductScreen() {
                       key={v.label}
                       disabled={v.stock <= 0}
                       onPress={() => setVariantLabel(v.label)}
-                      style={[styles.variant, active && styles.variantActive, v.stock <= 0 && { opacity: 0.4 }]}
+                      style={[styles.variant, active && [styles.variantActive, { borderColor: brand.primary, backgroundColor: brand.primarySoft }], v.stock <= 0 && { opacity: 0.4 }]}
                     >
-                      <Text style={[styles.variantText, active && { color: colors.primaryDark }]}>{v.label}</Text>
+                      <Text style={[styles.variantText, active && { color: brand.primaryDark }]}>{v.label}</Text>
                     </PressScale>
                   );
                 })}
@@ -507,9 +515,9 @@ export default function ProductScreen() {
             </View>
           )}
 
-          <View style={styles.trust}>
-            <View style={styles.trustRow}><Icon name="truck" size={16} color={colors.primary} /><Text style={styles.trustText}>Delivery or in-store pickup at checkout</Text></View>
-            <View style={styles.trustRow}><Icon name="shield-check" size={16} color={colors.primary} /><Text style={styles.trustText}>Secure checkout, code-verified handover</Text></View>
+          <View style={[styles.trust, { backgroundColor: brand.primarySoft, borderColor: brand.primaryTint }]}>
+            <View style={styles.trustRow}><Icon name="truck" size={16} color={brand.primary} /><Text style={styles.trustText}>Delivery or in-store pickup at checkout</Text></View>
+            <View style={styles.trustRow}><Icon name="shield-check" size={16} color={brand.primary} /><Text style={styles.trustText}>Secure checkout, code-verified handover</Text></View>
           </View>
 
           {/* Related products strictly based on category */}

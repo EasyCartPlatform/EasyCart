@@ -2,11 +2,10 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from '../../platform/shared/app-error.js';
 import { validate_signup_input, validate_login_input } from './auth-schemas.js';
 import { validate_slug } from '../../platform/shared/slug-validator.js';
-import { hash_password, check_password_matches } from '../../platform/shared/hash.js';
+import { save_password_account, verify_account_password } from '../../platform/auth/account-passwords.js';
 import { sign_token } from '../../platform/shared/jwt.js';
 import {
   find_user_by_email,
-  save_user,
   set_user_tenant_id,
   find_user_by_id,
   update_user_fields,
@@ -38,17 +37,15 @@ export async function create_user(payload) {
     throw new AppError('Slug already taken', 409);
   }
 
-  const password_hash = await hash_password(payload.password);
   const user = {
     id: randomUUID(),
     username: String(payload.username).trim(),
     email,
     phone_number: String(payload.phone_number).trim(),
-    password_hash,
     role: 'tenant_owner',
     tenant_id: null
   };
-  const saved_user = await save_user(user);
+  const saved_user = await save_password_account(user, payload.password);
 
   const tenant = await save_tenant({ id: randomUUID(), name: payload.store_name, slug: payload.slug, owner_id: saved_user.id, status: 'active' });
   await create_store_for_tenant(tenant.id, payload.store_name, payload.slug);
@@ -78,7 +75,7 @@ export async function login_user(payload) {
 
   const email = String(payload.email).toLowerCase();
   const user = await find_user_by_email(email);
-  const password_matches = user ? await check_password_matches(payload.password, user.password_hash) : false;
+  const password_matches = await verify_account_password(user, payload.password);
   if (!user || !password_matches) {
     throw new AppError('Invalid email or password', 401);
   }

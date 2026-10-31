@@ -1,4 +1,4 @@
-// The bottom bar every role uses: a sleek floating black dock with green active pill.
+// The bottom bar every role uses. Floating dark pill with vibrant brand active pill.
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -11,13 +11,22 @@ import { useBrand } from '@/lib/brand';
 // Which visible tab to light up while a hidden page is open, e.g. { 'product/[id]': 'index' }.
 export type ActiveFor = Record<string, string>;
 
-function TabButton({ label, icon, badge, active, isFirstRender, activeColor, onPress, onLongPress }: {
+function TabButton({
+  label,
+  icon,
+  badge,
+  active,
+  isFirstRender,
+  activeColor,
+  onPress,
+  onLongPress
+}: {
   label: string;
-  activeColor: string;
   icon: React.ReactNode;
   badge?: number | string;
   active: boolean;
   isFirstRender: boolean;
+  activeColor: string;
   onPress(): void;
   onLongPress(): void;
 }) {
@@ -59,8 +68,8 @@ function TabButton({ label, icon, badge, active, isFirstRender, activeColor, onP
 }
 
 export function AppTabBar({ state, descriptors, navigation, insets, activeFor }: BottomTabBarProps & { activeFor?: ActiveFor }) {
-  const [width, setWidth] = useState(0);
   const brand = useBrand();
+  const [width, setWidth] = useState(0);
   const slide = useSharedValue(0);
 
   const focusedRoute = state.routes[state.index];
@@ -126,7 +135,7 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
               isFirstRender={width === 0}
               activeColor={activeColor}
               badge={options.tabBarBadge}
-              icon={options.tabBarIcon?.({ focused: active, color, size: 19 })}
+              icon={options.tabBarIcon?.({ focused: active, color, size: 20 })}
               onPress={() => press(route)}
               onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
             />
@@ -140,10 +149,9 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
 const styles = StyleSheet.create({
   barWrapper: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: 16,
+    right: 16,
     alignItems: 'center',
-    paddingHorizontal: 16,
     zIndex: 9999,
   },
   bar: {
@@ -153,8 +161,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 6,
-    maxWidth: 480,
+    maxWidth: 500,
     width: '100%',
+    minHeight: 62,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 18,
@@ -187,7 +196,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   highlightPill: {
-    width: '100%',
+    width: '90%',
     height: '100%',
     borderRadius: 22,
   },
@@ -197,9 +206,10 @@ const styles = StyleSheet.create({
     height: 22,
   },
   label: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '600',
     color: '#94a3b8',
+    letterSpacing: -0.1,
     marginTop: 1,
   },
   labelActive: {
@@ -210,10 +220,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -10,
-    minWidth: 16,
-    height: 16,
+    minWidth: 17,
+    height: 17,
     paddingHorizontal: 4,
-    borderRadius: 8,
+    borderRadius: 8.5,
     backgroundColor: '#ef4444',
     alignItems: 'center',
     justifyContent: 'center',

@@ -3,9 +3,9 @@ import { AppError } from '../../platform/shared/app-error.js';
 import { validate_customer_signup_input } from './customer-schemas.js';
 import { validate_login_input } from '../auth/auth-schemas.js';
 import { validate_slug } from '../../platform/shared/slug-validator.js';
-import { hash_password, check_password_matches } from '../../platform/shared/hash.js';
+import { save_password_account, verify_account_password } from '../../platform/auth/account-passwords.js';
 import { sign_token } from '../../platform/shared/jwt.js';
-import { find_user_by_email, save_user, update_user_last_active } from '../users/repositories/user-repository.js';
+import { find_user_by_email, update_user_last_active } from '../users/repositories/user-repository.js';
 import { find_tenant_by_slug, find_tenant_by_owner_id, save_tenant } from '../tenants/repositories/tenant-repository.js';
 import { save_store } from '../stores/repositories/store-repository.js';
 import { clear_tenants_cache } from '../admin/services/admin-service.js';
@@ -24,16 +24,14 @@ export async function register_customer(payload) {
     throw new AppError('User already exists', 409);
   }
 
-  const password_hash = await hash_password(payload.password);
-  const saved_user = await save_user({
+  const saved_user = await save_password_account({
     id: randomUUID(),
     username: String(payload.username).trim(),
     email,
     phone_number: String(payload.phone_number).trim(),
-    password_hash,
     role: 'customer',
     tenant_id: null
-  });
+  }, payload.password);
 
   const token = sign_token({ sub: saved_user.id, email: saved_user.email, username: saved_user.username, role: saved_user.role, tenant_id: null });
 
@@ -58,7 +56,7 @@ export async function login_customer(payload) {
 
   const email = String(payload.email).toLowerCase();
   const user = await find_user_by_email(email);
-  const password_matches = user ? await check_password_matches(payload.password, user.password_hash) : false;
+  const password_matches = await verify_account_password(user, payload.password);
   if (!user || !password_matches || user.role !== 'customer') {
     throw new AppError('Invalid email or password', 401);
   }
