@@ -34,7 +34,7 @@ export function get_admin_signup_passcode() {
 // Empty means "anyone" (fine for local development, refused in production).
 export const CORS_ORIGINS = (process.env.CORS_ORIGIN || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter((origin) => origin !== '');
 
 // Online payments. They are off unless ONLINE_PAYMENTS_ENABLED is exactly "true"; no address or machine name decides it.

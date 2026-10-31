@@ -1,6 +1,6 @@
-// The bottom bar every role uses. Floating dark pill with vibrant brand active pill.
-import { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+// The bottom bar every role uses: sleek floating dark dock with vibrant brand active icon/symbol.
+import { useEffect } from 'react';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
@@ -16,7 +16,6 @@ function TabButton({
   icon,
   badge,
   active,
-  isFirstRender,
   activeColor,
   onPress,
   onLongPress
@@ -25,7 +24,6 @@ function TabButton({
   icon: React.ReactNode;
   badge?: number | string;
   active: boolean;
-  isFirstRender: boolean;
   activeColor: string;
   onPress(): void;
   onLongPress(): void;
@@ -44,10 +42,7 @@ function TabButton({
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      style={[
-        styles.item,
-        active && isFirstRender && [styles.itemActiveFallback, { backgroundColor: activeColor }]
-      ]}
+      style={styles.item}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={label}
@@ -60,7 +55,7 @@ function TabButton({
           </View>
         )}
       </Animated.View>
-      <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+      <Text style={[styles.label, active && { color: activeColor, fontWeight: '800' }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -69,37 +64,23 @@ function TabButton({
 
 export function AppTabBar({ state, descriptors, navigation, insets, activeFor }: BottomTabBarProps & { activeFor?: ActiveFor }) {
   const brand = useBrand();
-  const [width, setWidth] = useState(0);
-  const slide = useSharedValue(0);
 
   const focusedRoute = state.routes[state.index];
   const focusedName = focusedRoute?.name;
   const focusedOptions = focusedRoute ? descriptors[focusedRoute.key]?.options : undefined;
   const isHidden = focusedName === 'product/[id]' || (focusedOptions?.tabBarStyle as any)?.display === 'none';
 
-  // Hidden pages are tabs styled with display:none or href:null; they get no button.
+  // Hidden pages are tabs styled with href:null or tabBarItemStyle:display:none; they get no button.
   const visible = state.routes.filter((route) => {
     const opts = descriptors[route.key]?.options as any;
     if (!opts) return false;
     if (opts.href === null) return false;
     if (opts.tabBarItemStyle?.display === 'none') return false;
-    if (opts.tabBarStyle?.display === 'none') return false;
     return true;
   });
   const activeName = (focusedName && activeFor?.[focusedName]) ?? focusedName;
-  const activeIndex = visible.findIndex((route) => route.name === activeName);
-  const innerWidth = Math.max(0, width - 12);
-  const itemWidth = visible.length > 0 ? innerWidth / visible.length : 0;
 
-  useEffect(() => {
-    if (!isHidden && activeIndex >= 0 && itemWidth > 0) {
-      slide.value = withSpring(activeIndex * itemWidth, { damping: 26, stiffness: 380 });
-    }
-  }, [activeIndex, itemWidth, slide, isHidden]);
-
-  const highlightStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slide.value }] }));
-
-  if (isHidden) {
+  if (isHidden || visible.length <= 1) {
     return null;
   }
 
@@ -113,29 +94,20 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
 
   return (
     <View style={[styles.barWrapper, { bottom: Math.max(insets.bottom, 12) }]} pointerEvents="box-none">
-      <View
-        style={styles.bar}
-        onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
-      >
-        {activeIndex >= 0 && itemWidth > 0 && (
-          <Animated.View style={[styles.highlight, { width: itemWidth, left: 6 }, highlightStyle]}>
-            <View style={[styles.highlightPill, { backgroundColor: activeColor }]} />
-          </Animated.View>
-        )}
+      <View style={styles.bar}>
         {visible.map((route) => {
           const { options } = descriptors[route.key];
           const active = route.name === activeName;
           const label = typeof options.tabBarLabel === 'string' ? options.tabBarLabel : options.title ?? route.name;
-          const color = active ? '#ffffff' : '#94a3b8';
+          const color = active ? activeColor : '#94a3b8';
           return (
             <TabButton
               key={route.key}
               label={label}
               active={active}
-              isFirstRender={width === 0}
               activeColor={activeColor}
               badge={options.tabBarBadge}
-              icon={options.tabBarIcon?.({ focused: active, color, size: 20 })}
+              icon={options.tabBarIcon?.({ focused: active, color, size: 21 })}
               onPress={() => press(route)}
               onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
             />
@@ -159,11 +131,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0f172a',
     borderRadius: radius.pill,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
     maxWidth: 500,
     width: '100%',
-    minHeight: 62,
+    minHeight: 60,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 18,
@@ -181,29 +153,12 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 4,
     borderRadius: 22,
-    minHeight: 48,
-    zIndex: 2,
-  },
-  itemActiveFallback: {
-    backgroundColor: '#0284c7',
-  },
-  highlight: {
-    position: 'absolute',
-    top: 6,
-    bottom: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  highlightPill: {
-    width: '90%',
-    height: '100%',
-    borderRadius: 22,
+    minHeight: 46,
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 22,
+    height: 23,
   },
   label: {
     fontSize: 10.5,
@@ -211,10 +166,6 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     letterSpacing: -0.1,
     marginTop: 1,
-  },
-  labelActive: {
-    color: '#ffffff',
-    fontWeight: '800',
   },
   badge: {
     position: 'absolute',

@@ -207,8 +207,6 @@ export default function FavouritesScreen() {
           )}
         </View>
       </Screen>
-
-      <FloatingCartBar />
     </View>
   );
 }

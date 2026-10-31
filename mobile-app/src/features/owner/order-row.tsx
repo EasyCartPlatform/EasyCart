@@ -53,8 +53,8 @@ export function OrderRow({ order, allowQuickAction = true }: { order: Order; all
     ? (order.delivery_address?.replace(/\n/g, ', ') || 'Delivery address provided')
     : 'Store pickup';
 
-  return (
-    <PressScale onPress={() => router.push(`/owner/order/${order.id}`)} style={styles.card} accessibilityRole="button">
+  const orderBody = (
+    <>
       {/* Top Header: Short ID, Status Badge, Payment Tag, and Total Price */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
@@ -93,40 +93,57 @@ export function OrderRow({ order, allowQuickAction = true }: { order: Order; all
         </View>
         <Text style={styles.timeText}>{dateTime(order.created_at)}</Text>
       </View>
+    </>
+  );
+
+  if (!canQuickAccept) {
+    return (
+      <PressScale onPress={() => router.push(`/owner/order/${order.id}`)} style={styles.card} accessibilityRole="button">
+        {orderBody}
+      </PressScale>
+    );
+  }
+
+  return (
+    <View style={styles.card}>
+      <PressScale
+        onPress={() => router.push(`/owner/order/${order.id}`)}
+        accessibilityRole="button"
+        accessibilityLabel={`View order ${shortCode}`}
+        style={styles.cardBody}
+      >
+        {orderBody}
+      </PressScale>
 
       {/* Quick 1-Tap Action for Pending Orders */}
-      {canQuickAccept && (
-        <View style={styles.actionRow}>
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation();
-              handleAccept();
-            }}
-            disabled={loading}
-            style={[styles.acceptBtn, loading && styles.acceptBtnDisabled]}
-            accessibilityRole="button"
-            accessibilityLabel={`Accept order ${shortCode}`}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <>
-                <Icon name="check" size={15} color="#ffffff" strokeWidth={2.8} />
-                <Text style={styles.acceptText}>Accept Order</Text>
-              </>
-            )}
-          </Pressable>
-          <Pressable
-            onPress={() => router.push(`/owner/order/${order.id}`)}
-            style={styles.detailsBtn}
-            accessibilityRole="button"
-          >
-            <Text style={styles.detailsText}>View details</Text>
-            <Icon name="chevron-right" size={14} color="#0284c7" />
-          </Pressable>
-        </View>
-      )}
-    </PressScale>
+      <View style={styles.actionRow}>
+        <PressScale
+          onPress={handleAccept}
+          disabled={loading}
+          style={[styles.acceptBtn, loading && styles.acceptBtnDisabled]}
+          accessibilityRole="button"
+          accessibilityLabel={`Accept order ${shortCode}`}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <>
+              <Icon name="check" size={15} color="#ffffff" strokeWidth={2.8} />
+              <Text style={styles.acceptText}>Accept Order</Text>
+            </>
+          )}
+        </PressScale>
+        <PressScale
+          onPress={() => router.push(`/owner/order/${order.id}`)}
+          style={styles.detailsBtn}
+          accessibilityRole="button"
+          accessibilityLabel={`View details for ${shortCode}`}
+        >
+          <Text style={styles.detailsText}>View details</Text>
+          <Icon name="chevron-right" size={14} color="#0284c7" />
+        </PressScale>
+      </View>
+    </View>
   );
 }
 
@@ -139,6 +156,9 @@ const styles = StyleSheet.create({
     padding: space.md + 2,
     gap: 10,
     ...shadow
+  },
+  cardBody: {
+    gap: 10
   },
   headerRow: {
     flexDirection: 'row',
