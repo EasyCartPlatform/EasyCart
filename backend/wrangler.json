@@ -40,7 +40,41 @@
             "period": 60
           }
         }
-      ]
+      ],
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": true,
+          "persist": true
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true
+        },
+        "issues": {
+          "enabled": false
+        }
+      },
+      "previews": {
+        "observability": {
+          "logs": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "invocation_logs": true,
+            "persist": true
+          },
+          "traces": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "persist": true
+          },
+          "issues": {
+            "enabled": false
+          }
+        }
+      }
     },
     "qa": {
       "name": "easycart-api-qa",
@@ -72,7 +106,41 @@
             "period": 60
           }
         }
-      ]
+      ],
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": true,
+          "persist": true
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true
+        },
+        "issues": {
+          "enabled": false
+        }
+      },
+      "previews": {
+        "observability": {
+          "logs": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "invocation_logs": true,
+            "persist": true
+          },
+          "traces": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "persist": true
+          },
+          "issues": {
+            "enabled": false
+          }
+        }
+      }
     },
     "prod": {
       "name": "easycart-api-prod",
@@ -104,10 +172,78 @@
             "period": 60
           }
         }
-      ]
+      ],
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": true,
+          "persist": true
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true
+        },
+        "issues": {
+          "enabled": false
+        }
+      },
+      "previews": {
+        "observability": {
+          "logs": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "invocation_logs": true,
+            "persist": true
+          },
+          "traces": {
+            "enabled": true,
+            "head_sampling_rate": 1,
+            "persist": true
+          },
+          "issues": {
+            "enabled": false
+          }
+        }
+      }
     }
   },
   "alias": {
     "mongoose": "./node_modules/mongoose/index.js"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issues": {
+      "enabled": false
+    }
+  },
+  "previews": {
+    "observability": {
+      "logs": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "invocation_logs": true,
+        "persist": true
+      },
+      "traces": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "persist": true
+      },
+      "issues": {
+        "enabled": false
+      }
+    }
   }
 }
