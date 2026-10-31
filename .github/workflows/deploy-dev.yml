@@ -51,14 +51,14 @@ jobs:
         run: node scripts/ci/write-worker-secrets.mjs
       - run: npm ci
         working-directory: backend
-      - uses: actions/download-artifact@v4
-        id: download-bundle
-        continue-on-error: true
+      - name: Download verified bundle from CI
+        if: github.event_name != 'workflow_dispatch'
+        uses: actions/download-artifact@v4
         with:
           name: backend-worker-${{ github.sha }}
           path: backend/.worker-build
-      - name: Build worker bundle if not downloaded
-        if: steps.download-bundle.outcome != 'success'
+      - name: Build worker bundle for manual deployment
+        if: github.event_name == 'workflow_dispatch'
         working-directory: backend
         run: npm run worker:check
       - name: Deploy the tested bundle
