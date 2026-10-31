@@ -1,12 +1,9 @@
-// The bottom bar every role uses. Floating dark pill with vibrant brand active pill.
-import { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+// The bottom bar every role uses: a sleek floating dark dock with clean icon and label highlights.
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Text } from './text';
 import { radius } from '@/theme/theme';
-import { useBrand } from '@/lib/brand';
 
 // Which visible tab to light up while a hidden page is open, e.g. { 'product/[id]': 'index' }.
 export type ActiveFor = Record<string, string>;
@@ -16,7 +13,6 @@ function TabButton({
   icon,
   badge,
   active,
-  isFirstRender,
   activeColor,
   onPress,
   onLongPress
@@ -25,53 +21,40 @@ function TabButton({
   icon: React.ReactNode;
   badge?: number | string;
   active: boolean;
-  isFirstRender: boolean;
   activeColor: string;
   onPress(): void;
   onLongPress(): void;
 }) {
-  const lift = useSharedValue(0);
-
-  useEffect(() => {
-    lift.value = withSpring(active ? -2 : 0, { damping: 22, stiffness: 400 });
-  }, [active, lift]);
-
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: lift.value }, { scale: 1 + (-lift.value) * 0.05 }]
-  }));
-
   return (
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      style={[
-        styles.item,
-        active && isFirstRender && [styles.itemActiveFallback, { backgroundColor: activeColor }]
-      ]}
+      style={styles.item}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={label}
     >
-      <Animated.View style={[styles.iconWrap, iconStyle]}>
+      <View style={styles.iconWrap}>
         {icon}
         {badge !== undefined && badge !== '' && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badge}</Text>
           </View>
         )}
-      </Animated.View>
+      </View>
       <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
         {label}
       </Text>
+      {active ? (
+        <View style={[styles.activeDot, { backgroundColor: activeColor }]} />
+      ) : (
+        <View style={styles.activeDotPlaceholder} />
+      )}
     </Pressable>
   );
 }
 
 export function AppTabBar({ state, descriptors, navigation, insets, activeFor }: BottomTabBarProps & { activeFor?: ActiveFor }) {
-  const brand = useBrand();
-  const [width, setWidth] = useState(0);
-  const slide = useSharedValue(0);
-
   const focusedRoute = state.routes[state.index];
   const focusedName = focusedRoute?.name;
   const focusedOptions = focusedRoute ? descriptors[focusedRoute.key]?.options : undefined;
@@ -86,17 +69,6 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
     return true;
   });
   const activeName = (focusedName && activeFor?.[focusedName]) ?? focusedName;
-  const activeIndex = visible.findIndex((route) => route.name === activeName);
-  const innerWidth = Math.max(0, width - 12);
-  const itemWidth = visible.length > 0 ? innerWidth / visible.length : 0;
-
-  useEffect(() => {
-    if (!isHidden && activeIndex >= 0 && itemWidth > 0) {
-      slide.value = withSpring(activeIndex * itemWidth, { damping: 26, stiffness: 380 });
-    }
-  }, [activeIndex, itemWidth, slide, isHidden]);
-
-  const highlightStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slide.value }] }));
 
   if (isHidden || visible.length <= 1) {
     return null;
@@ -108,33 +80,24 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
     if (!event.defaultPrevented) navigation.navigate(route.name, route.params);
   }
 
-  const activeColor = brand.primary || '#0284c7';
+  const activeColor = '#38bdf8';
 
   return (
     <View style={[styles.barWrapper, { bottom: Math.max(insets.bottom, 12) }]} pointerEvents="box-none">
-      <View
-        style={styles.bar}
-        onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
-      >
-        {activeIndex >= 0 && itemWidth > 0 && (
-          <Animated.View style={[styles.highlight, { width: itemWidth, left: 6 }, highlightStyle]}>
-            <View style={[styles.highlightPill, { backgroundColor: activeColor }]} />
-          </Animated.View>
-        )}
+      <View style={styles.bar}>
         {visible.map((route) => {
           const { options } = descriptors[route.key];
           const active = route.name === activeName;
           const label = typeof options.tabBarLabel === 'string' ? options.tabBarLabel : options.title ?? route.name;
-          const color = active ? '#ffffff' : '#94a3b8';
+          const color = active ? activeColor : '#94a3b8';
           return (
             <TabButton
               key={route.key}
               label={label}
               active={active}
-              isFirstRender={width === 0}
               activeColor={activeColor}
               badge={options.tabBarBadge}
-              icon={options.tabBarIcon?.({ focused: active, color, size: 20 })}
+              icon={options.tabBarIcon?.({ focused: active, color, size: 21 })}
               onPress={() => press(route)}
               onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
             />
@@ -158,11 +121,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0f172a',
     borderRadius: radius.pill,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
     maxWidth: 500,
     width: '100%',
-    minHeight: 62,
+    minHeight: 60,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 18,
@@ -177,32 +140,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 4,
-    borderRadius: 22,
-    minHeight: 48,
-    zIndex: 2,
-  },
-  itemActiveFallback: {
-    backgroundColor: '#0284c7',
-  },
-  highlight: {
-    position: 'absolute',
-    top: 6,
-    bottom: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  highlightPill: {
-    width: '90%',
-    height: '100%',
-    borderRadius: 22,
+    borderRadius: 20,
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 22,
+    height: 24,
   },
   label: {
     fontSize: 10.5,
@@ -213,7 +158,18 @@ const styles = StyleSheet.create({
   },
   labelActive: {
     color: '#ffffff',
-    fontWeight: '800',
+    fontWeight: '700',
+  },
+  activeDot: {
+    width: 14,
+    height: 2.5,
+    borderRadius: 1.5,
+    marginTop: 2,
+  },
+  activeDotPlaceholder: {
+    width: 14,
+    height: 2.5,
+    marginTop: 2,
   },
   badge: {
     position: 'absolute',
