@@ -74,7 +74,7 @@ export function checkStoreDeliveryEligibility(store: Pick<PublicStore, 'max_deli
   const estimatedDistanceKm = estimateDistanceBetweenPincodes(storePincode, customerPincode);
   const isEligible = estimatedDistanceKm <= maxRadiusKm;
 
-  let message = '';
+  let message: string;
   if (isEligible) {
     message = `⚡ Delivers to your location (~${estimatedDistanceKm.toFixed(1)} km away)`;
   } else {

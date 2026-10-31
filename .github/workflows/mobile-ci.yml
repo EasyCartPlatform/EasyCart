@@ -1,16 +1,7 @@
 name: EasyCart Mobile CI
 
 on:
-  push:
-    branches: [main, "feature/**", "fix/**"]
-    paths:
-      - "mobile-app/**"
-      - ".github/workflows/mobile-ci.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "mobile-app/**"
-      - ".github/workflows/mobile-ci.yml"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -20,10 +11,15 @@ jobs:
   validate:
     name: Mobile App Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     defaults:
       run:
         working-directory: mobile-app
+
+    env:
+      CI: true
+      EXPO_NO_TELEMETRY: 1
 
     steps:
       - name: Checkout repository

@@ -1,8 +1,8 @@
-// Rate limiters. Both do nothing while running tests.
+// Rate limiters. Node limits run locally; the Cloudflare entry point enforces binding-based limits.
 import rateLimit from 'express-rate-limit';
 
 const no_op = (req, res, next) => next();
-const is_test = process.env.NODE_ENV === 'test';
+const is_test = process.env.NODE_ENV === 'test' || process.env.RUNTIME === 'cloudflare';
 
 // Strict limit for abuse-prone endpoints (login, registration, checkout).
 export const sensitive_route_limiter = is_test

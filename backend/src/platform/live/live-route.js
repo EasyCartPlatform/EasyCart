@@ -53,7 +53,12 @@ live_router.get('/live', (req, res, next) => {
 
   const unsubscribe = subscribe(channels, res);
   // Proxies close silent connections; a comment line every 25 seconds keeps it open.
-  const heartbeat = setInterval(() => res.write(': ping\n\n'), HEARTBEAT_MS);
+  const heartbeat = setInterval(() => {
+    res.write(': ping\n\n');
+    if (process.env.RUNTIME === 'cloudflare') {
+      for (const topic of ['order', 'rider', 'settlement']) res.write(`data: ${JSON.stringify({ topic, id: null })}\n\n`);
+    }
+  }, HEARTBEAT_MS);
   req.on('close', () => {
     clearInterval(heartbeat);
     unsubscribe();

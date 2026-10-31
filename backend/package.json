@@ -8,7 +8,12 @@
     "start": "node src/server-main.js",
     "test": "vitest run",
     "db:clear": "node scripts/clear-supabase-data.js",
-    "db:clear-test-data": "node scripts/clear-test-data.js"
+    "db:clear-test-data": "node scripts/clear-test-data.js",
+    "test:unit": "vitest run --config vitest-unit.config.js",
+    "test:integration": "vitest run --config vitest-integration.config.js",
+    "worker:check": "wrangler deploy --env dev --dry-run --outdir .worker-build",
+    "worker:dev": "wrangler dev --env dev",
+    "worker:smoke": "node scripts/worker-smoke.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -24,6 +29,10 @@
   },
   "devDependencies": {
     "supertest": "^7.0.0",
-    "vitest": "^2.0.4"
+    "vitest": "^2.0.4",
+    "wrangler": "4.151.1"
+  },
+  "overrides": {
+    "iconv-lite": "^0.7.2"
   }
 }

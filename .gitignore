@@ -10,3 +10,9 @@ Coverage/
 .idea/
 .vscode/
 .claude/.private-uploads/
+
+.wrangler/
+.worker-build/
+.dev.vars*
+.env.*
+!.env.example

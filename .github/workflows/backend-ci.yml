@@ -1,16 +1,7 @@
 name: EasyCart Backend CI
 
 on:
-  push:
-    branches: [main, "feature/**", "fix/**"]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci.yml"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -18,37 +9,28 @@ permissions:
 
 jobs:
   test:
-    name: Backend Tests
+    name: Backend unit tests and Worker build
     runs-on: ubuntu-latest
-    env:
-      DB_PROVIDER: supabase
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Check Supabase test configuration
-        run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "::error::Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY repository secrets for a dedicated Supabase test project. Fork PRs do not receive these secrets."
-            exit 1
-          fi
-
-      - name: Run backend tests
-        run: npm test
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run worker:smoke
+      - run: npm run worker:check
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          name: backend-worker-${{ github.sha }}
+          path: backend/.worker-build
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
