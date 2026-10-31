@@ -163,25 +163,36 @@ export default function CheckoutScreen() {
                   <Text style={styles.orderItemTotal}>
                     {price(line.price * line.quantity)}
                   </Text>
-                  <View style={styles.compactStepper}>
+                  <View style={styles.orderItemActions}>
                     <PressScale
-                      onPress={() => setQuantity(line.product_id, line.variant_label, line.quantity - 1)}
-                      style={styles.compactStepBtn}
-                      accessibilityLabel="Decrease"
+                      onPress={() => setQuantity(line.product_id, line.variant_label, 0)}
+                      style={styles.orderItemDeleteBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('Remove {name}', { name: line.name })}
+                      hitSlop={6}
                     >
-                      <Icon name="minus" size={12} color={brand.primaryDark || colors.primaryDark} strokeWidth={2.8} />
+                      <Icon name="trash-2" size={13} color={colors.danger} strokeWidth={2.2} />
                     </PressScale>
-                    <Text style={[styles.compactQty, { color: brand.primaryDark || colors.primaryDark }]}>
-                      {line.quantity}
-                    </Text>
-                    <PressScale
-                      onPress={() => setQuantity(line.product_id, line.variant_label, line.quantity + 1)}
-                      disabled={atMax}
-                      style={[styles.compactStepBtn, atMax && { opacity: 0.35 }]}
-                      accessibilityLabel="Increase"
-                    >
-                      <Icon name="plus" size={12} color={brand.primaryDark || colors.primaryDark} strokeWidth={2.8} />
-                    </PressScale>
+                    <View style={styles.compactStepper}>
+                      <PressScale
+                        onPress={() => setQuantity(line.product_id, line.variant_label, line.quantity - 1)}
+                        style={styles.compactStepBtn}
+                        accessibilityLabel="Decrease"
+                      >
+                        <Icon name="minus" size={12} color={brand.primaryDark || colors.primaryDark} strokeWidth={2.8} />
+                      </PressScale>
+                      <Text style={[styles.compactQty, { color: brand.primaryDark || colors.primaryDark }]}>
+                        {line.quantity}
+                      </Text>
+                      <PressScale
+                        onPress={() => setQuantity(line.product_id, line.variant_label, line.quantity + 1)}
+                        disabled={atMax}
+                        style={[styles.compactStepBtn, atMax && { opacity: 0.35 }]}
+                        accessibilityLabel="Increase"
+                      >
+                        <Icon name="plus" size={12} color={brand.primaryDark || colors.primaryDark} strokeWidth={2.8} />
+                      </PressScale>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -801,6 +812,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.text,
     fontVariant: ['tabular-nums']
+  },
+  orderItemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  orderItemDeleteBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.pill,
+    backgroundColor: colors.dangerSoft,
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   compactStepper: {
     flexDirection: 'row',

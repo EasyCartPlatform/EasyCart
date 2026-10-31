@@ -14,8 +14,8 @@ export interface Brand {
 }
 
 export const BRANDS: Record<ThemeId, Brand> = {
-  sky: { id: 'sky', name: 'Sky', primary: '#0284c7', primaryDark: '#0369a1', primarySoft: '#f0f9ff', primaryTint: '#e0f2fe', gradient: ['#0369a1', '#0284c7', '#0ea5e9'] },
-  emerald: { id: 'emerald', name: 'Emerald', primary: '#059669', primaryDark: '#047857', primarySoft: '#ecfdf5', primaryTint: '#d1fae5', gradient: ['#047857', '#059669', '#10b981'] },
+  sky: { id: 'sky', name: 'Sky', primary: '#0284c7', primaryDark: '#0369a1', primarySoft: '#f0f9ff', primaryTint: '#e0f2fe', gradient: ['#0369a1', '#0284c7', '#38bdf8'] },
+  emerald: { id: 'emerald', name: 'Emerald', primary: '#059669', primaryDark: '#047857', primarySoft: '#ecfdf5', primaryTint: '#d1fae5', gradient: ['#064e3b', '#059669', '#10b981'] },
   sunset: { id: 'sunset', name: 'Sunset', primary: '#ea580c', primaryDark: '#c2410c', primarySoft: '#fff7ed', primaryTint: '#ffedd5', gradient: ['#c2410c', '#ea580c', '#f97316'] },
   violet: { id: 'violet', name: 'Violet', primary: '#7c3aed', primaryDark: '#6d28d9', primarySoft: '#f5f3ff', primaryTint: '#ede9fe', gradient: ['#6d28d9', '#7c3aed', '#8b5cf6'] },
   rose: { id: 'rose', name: 'Rose', primary: '#e11d48', primaryDark: '#be123c', primarySoft: '#fff1f2', primaryTint: '#ffe4e6', gradient: ['#be123c', '#e11d48', '#f43f5e'] },

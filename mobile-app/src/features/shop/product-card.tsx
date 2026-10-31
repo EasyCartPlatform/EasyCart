@@ -13,7 +13,6 @@ import { accents, colors, radius, shadow } from '@/theme/theme';
 import type { Product, ProductVariant } from '@/types/catalog';
 import { useShop, type CartLine } from './shop-context';
 import { useProductRatings, type StarSummary } from './shop-api';
-import { useToast } from '@/components/toast';
 import { useT, useContent } from '@/lib/i18n';
 import { useBrand } from '@/lib/brand';
 import { ProductOptionsModal } from './product-options-modal';
@@ -36,7 +35,6 @@ export interface CardActions {
 
 export function useCardActions(): CardActions {
   const { slug, lines, add, setQuantity } = useShop();
-  const toast = useToast();
   const t = useT();
   const productRatings = useProductRatings(slug);
   const ratingFor = useCallback((productId: string) => productRatings.data?.[productId], [productRatings.data]);
@@ -78,10 +76,7 @@ export function useCardActions(): CardActions {
       image,
       max: maxStock
     });
-
-    const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
-    toast(t('{name} added to cart', { name: displayName }), 'success');
-  }, [add, toast, t]);
+  }, [add]);
 
   const onSetQuantity = useCallback((productId: string, quantity: number, variantLabel?: string) => {
     let resolvedLabel = variantLabel;

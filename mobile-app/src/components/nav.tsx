@@ -1,5 +1,4 @@
-// Shared navigation styling (white header with the EasyCart logo, teal accents) and the guard that keeps each role in its own area.
-import { type ReactNode } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import { Image, Pressable, View, type ColorValue } from 'react-native';
 import { Redirect, router } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
@@ -33,7 +32,11 @@ export function BrandTitle({ children }: { children: string }) {
 
 // Header styling and the shared bottom bar. `activeFor` says which tab to light up while a hidden page is open.
 export function useTabOptions(activeFor?: ActiveFor) {
-  return {
+  const tabBar = useCallback(
+    (props: BottomTabBarProps) => <AppTabBar {...props} activeFor={activeFor} />,
+    [activeFor]
+  );
+  const screenOptions = {
     ...stackOptions,
     headerTitleAlign: 'left' as const,
     // The title may take about half the bar; a longer name is cut with "…" so the bell and profile buttons stay clear.
@@ -41,14 +44,27 @@ export function useTabOptions(activeFor?: ActiveFor) {
     headerTitle: ({ children }: { children: string }) => <BrandTitle>{children}</BrandTitle>,
     // No fixed height here: the header grows by itself to clear the status bar and notch.
     headerStyle: { backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.borderSoft },
-    tabBar: (props: BottomTabBarProps) => <AppTabBar {...props} activeFor={activeFor} />,
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: '#94a3b8',
+    tabBarStyle: {
+      position: 'absolute' as const,
+      backgroundColor: 'transparent',
+      borderTopWidth: 0,
+      elevation: 0
+    },
     sceneStyle: { backgroundColor: colors.bg }
+  };
+
+  return {
+    tabBar,
+    screenOptions,
+    ...screenOptions
   };
 }
 
 // The tab bar draws the active highlight itself, so the icon is just the icon.
 export function tabIcon(name: IconName) {
-  return ({ color, focused }: { color: ColorValue; focused: boolean; size: number }) => <Icon name={name} size={22} color={color} strokeWidth={focused ? 2.4 : 2} />;
+  return ({ color, focused, size = 20 }: { color: ColorValue; focused: boolean; size?: number }) => <Icon name={name} size={size} color={color} strokeWidth={focused ? 2.4 : 2} />;
 }
 
 export function BackButton() {

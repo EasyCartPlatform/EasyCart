@@ -172,14 +172,14 @@ export default function ShopHome() {
             accessibilityRole="button"
             accessibilityLabel={t('Change delivery address')}
           >
-            <View style={[styles.deliveryPinCircle, { borderColor: brand.primaryTint || '#d1fae5' }]}>
-              <Icon name="map-pin" size={14} color={brand.primary || '#059669'} />
+            <View style={[styles.deliveryPinCircle, { borderColor: brand.primaryTint || '#e0f2fe' }]}>
+              <Icon name="map-pin" size={14} color={brand.primary || '#0284c7'} />
             </View>
             <View style={styles.deliveryContent}>
               <Text style={styles.deliveryTitle} numberOfLines={1} ellipsizeMode="tail">
                 {deliveryTarget ?? t('Select delivery address')}
               </Text>
-              <Icon name="chevron-right" size={13} color={brand.primary || '#059669'} />
+              <Icon name="chevron-right" size={13} color={brand.primary || '#0284c7'} />
             </View>
             {range?.isEligible && (
               <View style={[styles.etaPill, { borderColor: brand.primaryTint || '#e0f2fe' }]}>

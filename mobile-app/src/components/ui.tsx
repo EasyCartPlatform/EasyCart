@@ -87,8 +87,8 @@ export function Screen({
         contentContainerStyle={[
           styles.screenContent,
           noPadding
-            ? { padding: 0, paddingTop: 0, paddingBottom: space.xxl * 2 }
-            : { padding: pagePadding, paddingTop: space.xl, paddingBottom: space.xxl * 2 }
+            ? { padding: 0, paddingTop: 0, paddingBottom: 110 }
+            : { padding: pagePadding, paddingTop: space.xl, paddingBottom: 110 }
         ]}
         keyboardShouldPersistTaps="handled"
         onScroll={onScroll}
@@ -263,7 +263,7 @@ export function StatCard({ label, value, icon, fg, bg, hint }: { label: string; 
   return (
     <View style={[styles.card, styles.statCard]}>
       <View style={styles.rowBetween}>
-        <Text style={[text.muted, { flex: 1 }]} numberOfLines={1}>{label}</Text>
+        <Text style={[text.muted, { flex: 1, fontSize: 13, fontWeight: '600' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{label}</Text>
         <View style={[styles.statIcon, { backgroundColor: bg }]}><Icon name={icon} size={18} color={fg} /></View>
       </View>
       <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>

@@ -38,7 +38,11 @@ export default function RiderTabs() {
   const offers = home.data?.offers ?? [];
   useOfferAlert(home.data?.offers);
   return (
-    <Tabs backBehavior="history" screenOptions={{ ...tabOptions, headerRight: () => <RiderProfileMenu /> }}>
+    <Tabs
+      backBehavior="history"
+      tabBar={tabOptions.tabBar}
+      screenOptions={{ ...tabOptions.screenOptions, headerRight: () => <RiderProfileMenu /> }}
+    >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('bike'), tabBarBadge: offers.length > 0 ? offers.length : undefined }} />
       {/* History and earnings only matter once the rider can deliver. */}
       <Tabs.Screen name="history" options={{ title: 'History', tabBarIcon: tabIcon('clock'), href: approved ? undefined : null }} />

@@ -2,13 +2,16 @@
 import type { ColorValue, StyleProp, ViewStyle } from 'react-native';
 import {
   ArrowLeft, ArrowRight, Award, Ban, Bell, Bike, Box, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleArrowRight, CircleCheck, CircleX, Clipboard,
-  Clock, CloudUpload, CreditCard, Eye, EyeOff, Lock, Mail, File, Image, FileText, Gift, Heart, House, IndianRupee, Info, Key, List, LoaderCircle, LogOut, Map, MapPin,
-  MessageSquare, Minus, Navigation, Package, Phone, Plus, Power, Radio, RefreshCw, RotateCcw, Save, Search, Send, Shield,
+  Clock, CloudUpload, Copy, CreditCard, Eye, EyeOff, Lock, Mail, File, Image, FileText, Gift, Heart, House, IndianRupee, Info, Key, List, LoaderCircle, LogOut, Map, MapPin,
+  MessageCircle, MessageSquare, Minus, Navigation, Package, Phone, Plus, Power, QrCode, Radio, RefreshCw, RotateCcw, Save, Search, Send, Shield,
   ShieldCheck, ShoppingBag, ShoppingCart, SquareCheck, Store, Trash2, TriangleAlert, Truck, Upload, User, Users, WifiOff, X, Zap,
   Headphones, LayoutGrid, Pencil, Settings, Share2, Sparkles, Star, Tags, Ticket, Wallet, Filter, SlidersHorizontal, type LucideIcon
 } from 'lucide-react-native';
 
 const ICONS = {
+  copy: Copy,
+  'qr-code': QrCode,
+  'message-circle': MessageCircle,
   filter: Filter,
   sliders: SlidersHorizontal,
   'alert-circle': CircleAlert,

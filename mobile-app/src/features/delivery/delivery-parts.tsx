@@ -74,8 +74,17 @@ export function ProgressTimeline({ steps, current, finished }: { steps: Step[]; 
   );
 }
 
-export function DeliverySteps({ stage, offer }: { stage: DeliveryStage; offer: 'offered' | 'accepted' | null }) {
-  return <ProgressTimeline steps={DELIVERY_STEPS} current={stepIndex(stage, offer)} finished={stage === 'delivered'} />;
+const OWNER_DELIVERY_STEPS: Step[] = [
+  { title: 'Packing', hint: 'Pack items securely before rider handover', icon: 'package' },
+  { title: 'Finding a rider', hint: 'Alerting nearby delivery partners', icon: 'search' },
+  { title: 'Rider picking up', hint: 'Delivery partner is heading to your store', icon: 'bike' },
+  { title: 'Out for delivery', hint: 'Order is on its way to the customer', icon: 'truck' },
+  { title: 'Delivered', hint: 'Order successfully delivered', icon: 'check-circle' }
+];
+
+export function DeliverySteps({ stage, offer, isOwner = false }: { stage: DeliveryStage; offer: 'offered' | 'accepted' | null; isOwner?: boolean }) {
+  const steps = isOwner ? OWNER_DELIVERY_STEPS : DELIVERY_STEPS;
+  return <ProgressTimeline steps={steps} current={stepIndex(stage, offer)} finished={stage === 'delivered'} />;
 }
 
 export function RiderCard({ rider, caption }: { rider: HandoverRider; caption: string }) {

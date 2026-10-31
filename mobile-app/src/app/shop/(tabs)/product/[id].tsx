@@ -9,7 +9,6 @@ import { useT, useContent } from '@/lib/i18n';
 import { useBrand } from '@/lib/brand';
 import { FavouriteButton } from '@/features/shop/favourite-button';
 import { Button, EmptyState, Loading, Screen } from '@/components/ui';
-import { useToast } from '@/components/toast';
 import { useShop } from '@/features/shop/shop-context';
 import { useCategories, useProduct, useProductRatings, useProducts } from '@/features/shop/shop-api';
 import { ProductRail } from '@/features/shop/product-rail';
@@ -28,7 +27,6 @@ function rupeePrice(value: number | null | undefined) {
 export default function ProductScreen() {
   const { id, variant: queryVariant } = useLocalSearchParams<{ id: string; variant?: string }>();
   const { slug, add, lines, subtotal, setQuantity: updateCartQuantity, markViewed } = useShop();
-  const toast = useToast();
   const t = useT();
   const brand = useBrand();
   const insets = useSafeAreaInsets();
@@ -156,7 +154,6 @@ export default function ProductScreen() {
     if (!product) return;
     if (__DEV__) console.log(`[cart] tapped add: ${product.name}, option=${variant?.label ?? 'none'}, stock=${stock}`);
     add({ product_id: product.id, variant_label: variant?.label, name: product.name, price: unitPrice, quantity: 1, image: images[0] ?? null, max: stock });
-    toast(t('{name} added to cart', { name: `${product.name}${variant?.label ? ` (${variant.label})` : ''}` }), 'success');
   }
 
   // Once the item is in the cart, the stepper changes the cart straight away.

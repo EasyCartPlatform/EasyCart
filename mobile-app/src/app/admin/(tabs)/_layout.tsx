@@ -40,7 +40,11 @@ export default function AdminTabs() {
   const { data: stores } = useTenants();
   const requests = (stores ?? []).filter((store) => store.status === 'pending').length;
   return (
-    <Tabs backBehavior="history" screenOptions={{ ...tabOptions, headerRight: () => <AdminProfileMenu /> }}>
+    <Tabs
+      backBehavior="history"
+      tabBar={tabOptions.tabBar}
+      screenOptions={{ ...tabOptions.screenOptions, headerRight: () => <AdminProfileMenu /> }}
+    >
       <Tabs.Screen name="index" options={{ title: 'Overview', tabBarIcon: tabIcon('grid') }} />
       <Tabs.Screen name="stores" options={{ title: 'Stores', tabBarIcon: tabIcon('store'), tabBarBadge: requests > 0 ? requests : undefined }} />
       <Tabs.Screen name="partners" options={{ title: 'Partners', tabBarIcon: tabIcon('bike'), tabBarBadge: waiting > 0 ? waiting : undefined }} />

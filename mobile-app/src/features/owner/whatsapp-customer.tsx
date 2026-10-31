@@ -4,7 +4,7 @@ import { shortId } from '@/lib/format';
 import { openWhatsApp, phoneFromAddress } from '@/lib/whatsapp';
 import type { Order } from '@/types/order';
 
-function messageFor(order: Order, shop: string): string {
+export function messageFor(order: Order, shop: string): string {
   const id = shortId(order.id);
   if (order.status === 'cancelled') return `Hello! Sorry, your order ${id} from ${shop} was cancelled.`;
   if (order.status === 'fulfilled') return `Hello! Your order ${id} from ${shop} was delivered. Thank you for shopping with us!`;
