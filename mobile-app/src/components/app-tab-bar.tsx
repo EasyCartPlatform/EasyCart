@@ -77,13 +77,12 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
   const focusedOptions = focusedRoute ? descriptors[focusedRoute.key]?.options : undefined;
   const isHidden = focusedName === 'product/[id]' || (focusedOptions?.tabBarStyle as any)?.display === 'none';
 
-  // Hidden pages are tabs styled with display:none or href:null; they get no button.
+  // Hidden pages are tabs styled with href:null or tabBarItemStyle:display:none; they get no button.
   const visible = state.routes.filter((route) => {
     const opts = descriptors[route.key]?.options as any;
     if (!opts) return false;
     if (opts.href === null) return false;
     if (opts.tabBarItemStyle?.display === 'none') return false;
-    if (opts.tabBarStyle?.display === 'none') return false;
     return true;
   });
   const activeName = (focusedName && activeFor?.[focusedName]) ?? focusedName;
@@ -99,7 +98,7 @@ export function AppTabBar({ state, descriptors, navigation, insets, activeFor }:
 
   const highlightStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slide.value }] }));
 
-  if (isHidden) {
+  if (isHidden || visible.length <= 1) {
     return null;
   }
 
