@@ -1,10 +1,6 @@
 name: Deploy backend
 
 on:
-  workflow_run:
-    workflows: [EasyCart CI]
-    types: [completed]
-    branches: [main, 'feature/**']
   workflow_dispatch:
     inputs:
       environment:
@@ -29,10 +25,9 @@ concurrency:
 jobs:
   release:
     if: >-
+      github.event_name == 'workflow_dispatch' &&
       (github.ref == 'refs/heads/main' ||
-      (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev')) &&
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && vars.ENABLE_DEV_DEPLOY == 'true'))
+      (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -48,9 +43,9 @@ jobs:
         run: node scripts/ci/resolve-release.mjs
         env:
           GH_TOKEN: ${{ github.token }}
-          CI_RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
+          CI_RUN_ID: ${{ inputs.ci_run_id }}
           TARGET_ENV: ${{ inputs.environment || 'dev' }}
-          AUTO_DEPLOY: ${{ github.event_name == 'workflow_run' }}
+          AUTO_DEPLOY: 'false'
 
   integration:
     if: needs.release.outputs.sha != '' && needs.release.outputs.environment != 'dev'

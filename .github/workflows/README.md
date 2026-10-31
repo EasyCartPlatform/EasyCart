@@ -1,3 +1,16 @@
+# Easy dev deployment — start here
+
+Push to `feature/*` (including `feature/mobile_Custcart`) or `main`. When backend/workflow changes pass all selected CI checks, the same CI run deploys its backend artifact to dev and checks `/api/health`. No default-branch change, manual workflow button, CI run ID, or `ENABLE_DEV_DEPLOY` variable is needed. Mobile-only/frontend-only changes do not redeploy the backend. Database integration tests are skipped for dev.
+
+In GitHub Settings → Environments → dev, allow your feature branches and configure:
+
+- Secrets: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`.
+- Variables: `BACKEND_URL`, `CORS_ORIGIN`, `SUPABASE_AUTH_MIGRATED=true` (after verifying Auth), `DEPLOYMENT_ENABLED=true`.
+
+Watch Actions → EasyCart CI → Deploy dev. All feature branches share one dev Worker/database; the last successful deployment becomes the active version. Deployment is serialized. PRs never deploy. The separate Deploy backend workflow remains manual for retained-artifact deployment/promotion and requires registration on the default branch; it no longer automatically triggers after CI, preventing duplicate deployments.
+
+The older reference below describes manual artifact promotion. For automatic dev deployment, use the instructions above.
+
 # EasyCart CI/CD — explained simply
 
 **CI** checks code automatically. **CD** deploys a checked version so people can use it. GitHub Actions runs the pipeline; Cloudflare runs the backend; Supabase stores data and, when enabled, handles passwords. Prisma is not required.
@@ -80,7 +93,7 @@ These are three separate Worker configurations, not three VMs. They become hoste
 
 | Environment | Worker name | Release rule |
 | --- | --- | --- |
-| Dev | `easycart-api-dev` | Automatic after successful main CI only when explicitly enabled; also supports manual deployment |
+| Dev | `easycart-api-dev` | Automatic in push CI after backend checks on main/feature branches; also supports manual deployment |
 | QA | `easycart-api-qa` | Manually promote an artifact that successfully deployed to dev |
 | Prod | `easycart-api-prod` | Manually promote an artifact that successfully deployed to QA |
 
@@ -93,7 +106,7 @@ The same bundled JavaScript artifact is used in each environment. It is not rebu
 3. In each environment you intend to enable, add **secrets**: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and a random `JWT_SECRET` of at least 32 characters. Use different JWT secrets and database credentials for each environment.
 4. Add **variables**: `BACKEND_URL` (for example, `https://easycart-api-dev.YOUR-SUBDOMAIN.workers.dev`) and `CORS_ORIGIN` (a comma-separated list of browser origins allowed to call that backend, without trailing slashes).
 5. Prepare and test the Supabase Auth migration described below. Only then set the environment variables `SUPABASE_AUTH_MIGRATED=true` and `DEPLOYMENT_ENABLED=true`.
-6. Start with dev only. To allow automatic dev deployments, add the **repository variable** `ENABLE_DEV_DEPLOY=true`. Leave it unset to keep deployment manual. Leave QA/prod disabled until you have isolated databases and have completed readiness checks.
+6. Start with dev only. Automatic dev deployment runs inside push CI when a backend artifact is built; `ENABLE_DEV_DEPLOY` is no longer used. Leave QA/prod disabled until you have isolated databases and have completed readiness checks.
 7. For manual deployment, open **Actions → Deploy backend → Run workflow**, select `main`, choose the environment, and provide the numeric run ID of a successful **EasyCart CI** push run on `main` that produced a backend artifact. Use that same ID to promote it to the next environment.
 
 All deployment switches default to disabled. Manual runs from `feature/*` can deploy dev. Successful main push CI artifacts are accepted for all environments. Trusted branches matching `feature/*` can also build and deploy dev artifacts, but cannot deploy QA/prod. Dev deployments skip the real Supabase integration suite; QA/prod deployments must pass it first. Database-independent CI checks remain required for every release. Wrangler uploads code and temporary-file secrets together, then the workflow checks `/api/health` and records the commit and CI run ID for the next promotion gate. A failed health check fails deployment; it does not automatically roll back a Worker already uploaded. After a deployment failure, inspect the logs and re-deploy the previous known-good artifact if necessary.
@@ -145,7 +158,3 @@ npm --prefix mobile-app run export:web
 Run `actionlint` to check GitHub-specific YAML rules; CI does this too. For Expo configuration, run `npx expo config --type public` from `mobile-app/`. Run real backend integration tests only against the dedicated CI project.
 
 Check trigger behavior in a PR, inspect logs to confirm checks really ran, and temporarily introduce a failing test/type error on a test branch to prove failures turn CI red; then revert it. A green check means only the configured checks passed. AI-written YAML needs exactly the same validation as human-written YAML.
-
-## Deploy dev from the existing feature branch
-
-Push these workflow changes to your feature branch. In GitHub's `dev` environment, allow the feature branch pattern under deployment branch rules. After its successful EasyCart CI push run uploads a backend artifact, run Deploy backend with your actual feature branch selected, environment `dev`, and that CI run ID. No merge to main is needed for manual dev deployment, provided the workflow is already registered on the default branch. If Run workflow is absent, the workflow definition must first exist on the default branch. Automatic workflow_run deployments also use the workflow definition on the default branch, which must contain these updates before automatic feature-branch deployment works. QA/prod remain main-only.
