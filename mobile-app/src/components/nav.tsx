@@ -44,7 +44,6 @@ export function useTabOptions(activeFor?: ActiveFor) {
     headerTitle: ({ children }: { children: string }) => <BrandTitle>{children}</BrandTitle>,
     // No fixed height here: the header grows by itself to clear the status bar and notch.
     headerStyle: { backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.borderSoft },
-    tabBar,
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: '#94a3b8',
     tabBarStyle: {
